@@ -77,7 +77,7 @@
       margin:auto;
       overflow:hidden;
       isolation:isolate;
-      touch-action:none;
+      touch-action:pan-x pan-y;
       user-select:none;
       -webkit-user-select:none;
     }
@@ -503,6 +503,30 @@
 .peek img{height:auto!important;width:100%!important;object-fit:contain!important;object-position:center top!important;border-radius:0!important;mask-image:none!important;-webkit-mask-image:none!important;}
 .no-motion .shell{transition:none!important}
 
+
+/* v0.9 surface and animation refinements */
+.sheet select{border:1px solid rgba(255,255,255,.55);border-radius:14px;padding:10px 12px;background:rgba(249,236,255,.38);color:#32234c;max-width:54%;font:inherit}
+.sheet select option{color:#221a35;background:#f7eaff;}
+.content.column-scroller{touch-action:pan-x!important;overscroll-behavior-x:contain!important;scroll-behavior:smooth;}
+.column-list{grid-auto-columns:calc(100% - 4px)!important;column-gap:14px!important;}
+.pane{background-clip:padding-box;}
+.pane-day{background:linear-gradient(180deg,rgba(254,232,251,.035),rgba(215,180,251,.08))!important;}
+.pane-heap{background:linear-gradient(180deg,rgba(226,198,255,.08),rgba(60,36,94,.23))!important;}
+.pane-trash{background:linear-gradient(180deg,rgba(106,67,139,.20),rgba(17,10,43,.38))!important;}
+.pane::before{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+.task,.column-list .task{border-radius:999px!important;clip-path:inset(0 round 999px);}
+.task.holding::after{border-radius:999px!important;}
+.task.disappear{animation:organicPop .43s cubic-bezier(.2,.85,.2,1) both!important;filter:none!important;clip-path:inset(0 round 999px)!important;}
+.task.disappear::after{animation:none!important;opacity:0!important;}
+@keyframes organicPop{0%{opacity:1;transform:scale(1);clip-path:inset(0 round 999px)}28%{opacity:1;transform:scale(1.10)}48%{opacity:.95;transform:scale(1.21)}75%{opacity:.35;transform:scale(1.36)}100%{opacity:0;transform:scale(1.48);clip-path:inset(46% 49% round 999px)}}
+.spark{border-radius:50%!important;filter:none!important;}
+.bg-photo{filter:blur(var(--photo-blur,0px));transform:scale(var(--photo-scale,1));transform-origin:center;}
+.day-pane-ghost{position:absolute!important;left:0;right:0;top:0;height:100%;pointer-events:none;z-index:10;overflow:hidden;}
+.pane-day{will-change:transform,opacity;}
+/* keep the existing transparent Emilia artwork clear of the screen edges */
+.peek{width:min(70vw,285px)!important;height:205px!important;}
+.peek img{height:100%!important;width:100%!important;object-fit:contain!important;object-position:center bottom!important;}
+.no-motion .day-pane-ghost{animation:none!important;}
   </style>
 </head>
 <body>
@@ -570,6 +594,8 @@
     if (!['iridescent','moon','blue','dark','light'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
     data.settings.gradientOpacity ??= 72;
     data.settings.backgroundImage ??= null;
+    data.settings.backgroundBlur ??= 0;
+    data.settings.heapDecayDays ??= 7;
     data.tasks = data.tasks.filter(t => t && typeof t.title === 'string' && t.title.trim() && (t.day === 'heap' || Number.isInteger(t.day) && t.day >= 0 && t.day < 7));
     data.trash = data.trash.filter(t => t && typeof t.title === 'string' && t.title.trim());
     data.completed = Array.isArray(data.completed) ? data.completed : [];
@@ -590,6 +616,15 @@
     function save(){
       try { localStorage.setItem(KEY, JSON.stringify(data)); }
       catch { toast('Storage unavailable — export a backup'); }
+    }
+
+    function cleanExpired(){
+      const days=Number(data.settings.heapDecayDays);
+      if(!Number.isFinite(days) || days<=0) return;
+      const oldest=Date.now()-days*86400000;
+      const prev=data.completed.length;
+      data.completed=data.completed.filter(t=>!t.completedAt || Number(t.completedAt)>oldest);
+      if(data.completed.length!==prev) save();
     }
 
     function rollover(){
@@ -633,6 +668,9 @@
       document.documentElement.style.setProperty('--menu-b',light?'rgba(231,245,255,.97)':dark?'rgba(92,94,126,.94)':'rgba(159,213,245,.88)');
       document.documentElement.style.setProperty('--menu-c',light?'rgba(240,232,253,.97)':dark?'rgba(110,96,137,.96)':'rgba(188,166,234,.94)');
       const hasPhoto=!!data.settings.backgroundImage;
+      const blur=Math.max(0,Math.min(32,+data.settings.backgroundBlur||0));
+      document.documentElement.style.setProperty('--photo-blur',blur+'px');
+      document.documentElement.style.setProperty('--photo-scale',String(1+blur/180));
       const image=$('bgPhoto');
       image.style.backgroundImage=hasPhoto?`url(${JSON.stringify(data.settings.backgroundImage)})`:'none';
       image.style.opacity=hasPhoto?'1':'0';
@@ -695,10 +733,26 @@
     }
 
     function moveDay(to, direction){
-      currentDay = ((to % 7) + 7) % 7;
-      dayAnim = direction === 'left' ? 'left' : 'right';
+      if(surface!=='day') return;
+      const pane=document.querySelector('.pane-day');
+      const oldPane=pane.cloneNode(true);
+      oldPane.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+      oldPane.classList.add('day-pane-ghost');
+      oldPane.querySelectorAll('[tabindex]').forEach(el=>el.removeAttribute('tabindex'));
+      $('shell').append(oldPane);
+      currentDay=((to%7)+7)%7;
+      dayAnim='';
       feedback();
+      $('dayContent').scrollTop=0;
       renderDay();
+      const x=direction==='left'?-1:1;
+      const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches||!data.settings.motion;
+      if(reduce){oldPane.remove();return;}
+      const opts={duration:430,easing:'cubic-bezier(.22,.86,.25,1)',fill:'both'};
+      const exit=oldPane.animate([{transform:'translateX(0)',opacity:1},{transform:`translateX(${x*100}%)`,opacity:.58}],opts);
+      pane.animate([{transform:`translateX(${-x*100}%)`,opacity:.58},{transform:'translateX(0)',opacity:1}],opts);
+      exit.onfinish=()=>oldPane.remove();
+      exit.oncancel=()=>oldPane.remove();
     }
 
     function taskCard(task, i){
@@ -764,6 +818,7 @@
 
     function render(){
       rollover();
+      cleanExpired();
       theme();
       renderTrash();
       renderHeap();
@@ -786,7 +841,14 @@
         for(let i=0;i<22;i++){
           const p=document.createElement('span');p.className='spark';
           p.style.cssText=`--x:${15+Math.random()*70}%;--y:${15+Math.random()*70}%;--size:${2+Math.random()*7}px;--dx:${(Math.random()-.5)*260}px;--dy:${(Math.random()-.5)*280}px;--spark-color:${['#fff','#e7b7f5','#8ce8ed','#ffc9df'][i%4]}`;
-          el.append(p);
+          const rect=el.getBoundingClientRect();
+          p.style.position='fixed';
+          p.style.left=(rect.left+rect.width*(.15+Math.random()*.7))+'px';
+          p.style.top=(rect.top+rect.height*(.15+Math.random()*.7))+'px';
+          p.style.zIndex='150';
+          p.style.pointerEvents='none';
+          document.body.append(p);
+          setTimeout(()=>p.remove(),650);
         }
         setTimeout(()=>{render();toast('Completed · added to Heap')},470);
       } else {render();toast('Completed · added to Heap')}
@@ -1013,6 +1075,8 @@
         </div>
         <p class="upload-note">Images are saved on this device. For storage reliability, choose a small photo.</p>
         <div class="setting"><span>Gradient over photo</span><input id="gradientOpacity" type="range" min="0" max="100"></div>
+        <div class="setting"><span>Background image blur</span><input id="backgroundBlur" type="range" min="0" max="32" step="1"></div>
+        <div class="setting"><span>Heap decay</span><select id="heapDecayDays" aria-label="Permanently remove completed tasks after"><option value="1">1 day</option><option value="3">3 days</option><option value="7">1 week</option><option value="14">2 weeks</option><option value="30">30 days</option><option value="0">Never</option></select></div>
         <div class="actions"><button id="resetBackground">Reset background to default</button></div>
         <div class="setting"><span>Darken background</span><input type="range" min="0" max="90" id="dim"></div>
         <div class="setting"><span>Sounds</span><input id="sound" type="checkbox"></div>
@@ -1033,7 +1097,7 @@
       const refresh=()=>{closeSheet();openSettings()};
       $('resetBackground').onclick=()=>{
         data.settings.colors=null;data.settings.theme='iridescent';
-        data.settings.dim=34;data.settings.backgroundImage=null;data.settings.gradientOpacity=72;
+        data.settings.dim=34;data.settings.backgroundImage=null;data.settings.gradientOpacity=72;data.settings.backgroundBlur=0;
         save();theme();refresh();toast('Default background restored');
       };
       $('imageUpload').onclick=()=>$('backgroundFile').click();
@@ -1060,6 +1124,10 @@
         };
         reader.readAsDataURL(file);
       };
+      $('backgroundBlur').value=data.settings.backgroundBlur;
+      $('backgroundBlur').oninput=e=>{data.settings.backgroundBlur=+e.target.value;save();theme()};
+      $('heapDecayDays').value=String(data.settings.heapDecayDays);
+      $('heapDecayDays').onchange=e=>{data.settings.heapDecayDays=+e.target.value;cleanExpired();save();render();toast('Heap retention updated')};
       $('gradientOpacity').value=data.settings.gradientOpacity;
       $('gradientOpacity').oninput=e=>{data.settings.gradientOpacity=+e.target.value;save();theme()};
       $('dim').value=data.settings.dim;
@@ -1136,7 +1204,7 @@
       if (modal || e.target.closest('input,textarea,.heap-settings')) return;
       const p = e.touches[0];
       const scroller = e.target.closest('.content') || scrollerForSurface(surface);
-      gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, surfaceAtStart: surface, bottomEdge:p.clientY>window.innerHeight-105, peeking:false };
+      gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, startScrollLeft:scroller.scrollLeft, surfaceAtStart: surface, bottomEdge:p.clientY>window.innerHeight-105, peeking:false };
     }, {passive:true});
 
     shell.addEventListener('touchmove', e => {
@@ -1166,7 +1234,13 @@
       const absX = Math.abs(dx), absY = Math.abs(dy);
       const scroller = gesture.scroller || scrollerForSurface(surface);
       const atTop = (scroller?.scrollTop || 0) < 6;
-      if (surface === 'day' && absX > 55 && absX > absY * 1.2) {
+      if(surface!=='day' && absX>48 && absX>absY*1.12){
+        // Native horizontal pan remains primary; this handles Android webviews
+        // that swallow the touch because of a surrounding gesture handler.
+        if(Math.abs((scroller.scrollLeft||0)-gesture.startScrollLeft)<8 && scroller.scrollWidth>scroller.clientWidth+4){
+          scroller.scrollBy({left:dx<0?scroller.clientWidth*.86:-scroller.clientWidth*.86,behavior:'smooth'});
+        }
+      } else if (surface === 'day' && absX > 55 && absX > absY * 1.2) {
         moveDay(currentDay + (dx < 0 ? 1 : -1), dx < 0 ? 'left' : 'right');
       } else if (absY > 70 && absY > absX * 1.2 && (dy < 0 || atTop)) {
         if (dy > 0) {
