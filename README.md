@@ -1,17 +1,23 @@
-# Emiliarity v1.7
+# Emiliarity v1.8 — Minimal polish
 
-Minimal interface and input reliability refinement.
+This update retains the task data format and artwork of v1.7.
 
-- Task taps now open reliably on Android touch and desktop mouse. The modal no longer closes from the same touch's delayed click; hold-to-complete is preserved.
-- Add Task uses one quiet rounded container with a smaller empty title field and a larger empty optional description field. No placeholder text; Enter in the title creates the task.
-- Settings and Add Task use a consistent deep black-and-white appearance, independently of the chosen background atmosphere.
-- Settings sliders use thinner neutral tracks and small round white thumbs.
-- Todo and Heap cards now soften at the actual scrolling edge when more content extends horizontally, rather than ending abruptly or applying a pane-wide fade.
-- The original Emilia illustrations and app icons are unchanged.
-- Task data and backup format remain compatible with earlier releases.
+## Changes
 
-## Updating
+- Add Task is a single translucent popup with just two editable boxes (title and optional description), plus a small confirm control. The unnecessary inner frame and close X are gone. Tap outside to dismiss.
+- Settings uses the same understated tinted glass surface, with no extra close X; tap outside or press Escape to dismiss.
+- Added subtle matching light/shade gradients at the edges of vertical panes for smoother visual continuity as you swipe through Heap, Todo, and weekdays.
+- Removed a duplicate `choose` button ID in the task details view.
+- Custom gradient settings are retained when temporarily switching to another atmosphere.
+- Service worker version bumped to ensure the new files update cleanly.
 
-1. Export a backup from the app in Settings.
-2. Copy the files from the `emiliarity` folder into your existing GitHub Pages repository root.
-3. Commit, let GitHub Pages deploy, then refresh the app.
+No changes to the two Emilia image files or the three app icons.
+
+## Deployment
+
+1. Export a backup from Settings before replacing app files.
+2. Upload every file in this directory to the repository root hosting your GitHub Pages site.
+3. Commit the files to the published branch.
+4. Reload the live app after it deploys. If the installed PWA retains the old interface, fully close and relaunch it once.
+
+Note: The local Chromium smoke tests covered opening/closing Settings, creating a title-only task with Enter, touching a task to open its editor, and dismissing by tapping outside. Gesture transitions still need testing on a real Android device.

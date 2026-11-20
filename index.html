@@ -755,6 +755,96 @@ body{color:var(--ink)!important}
 .content.column-scroller.edge-left{--edge-mask-l:20px}
 .content.column-scroller.edge-right{--edge-mask-r:29px}
 
+
+/* v1.8 — shared quiet glass surfaces, no redundant chrome */
+.overlay-minimal .sheet-header,
+.overlay-minimal .sheet-header .x,
+.overlay-minimal .handle{display:none!important}
+.overlay{background:rgba(3,3,9,.32)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.overlay-minimal{align-items:center!important;padding:20px!important}
+.overlay-minimal .sheet{
+  width:min(100%,535px)!important;
+  max-height:min(88dvh,770px)!important;
+  padding:23px!important;
+  border-radius:30px!important;
+  background:
+    linear-gradient(132deg,rgba(255,255,255,.15),rgba(255,255,255,.035) 48%,rgba(255,255,255,.07)),
+    linear-gradient(160deg,rgba(23,18,34,.82),rgba(16,15,28,.88) 70%,rgba(27,20,42,.84))!important;
+  border:1px solid rgba(255,255,255,.25)!important;
+  color:#fff!important;
+  --ink:#fff;
+  --menu-ink:#fff;
+  --contrast:255,255,255;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.27)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  overscroll-behavior:contain;
+}
+.overlay-minimal .sheet :is(button,select,input,textarea){color:#fff!important}
+.overlay-create .sheet{width:min(100%,480px)!important;padding:19px!important}
+.overlay-create .sheet-body{padding:0!important}
+.overlay-create .create-fields{border:0!important;background:transparent!important;border-radius:0!important;padding:0!important;gap:10px!important}
+.overlay-create .create-fields :is(#newTitle,#newDesc){
+  background:linear-gradient(115deg,rgba(255,255,255,.095),rgba(255,255,255,.035))!important;
+  border:1px solid rgba(255,255,255,.24)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11)!important;
+  border-radius:18px!important;
+}
+.overlay-create .create-fields #newTitle{min-height:51px!important}
+.overlay-create .create-fields #newDesc{min-height:112px!important}
+.overlay-create .create-fields :is(#newTitle,#newDesc):focus{border-color:rgba(255,255,255,.62)!important;outline:none!important}
+.overlay-create .create-actions{margin:2px 0 0!important;justify-content:flex-end!important}
+.overlay-create .icon-submit{
+  width:47px!important;height:43px!important;
+  border-radius:17px!important;
+  border:1px solid rgba(255,255,255,.3)!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.07))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18)!important;
+}
+.overlay-create .icon-submit:active{transform:scale(.95)}
+/* Override the v1.7 opaque backgrounds with a single consistent atmospheric pane. */
+.overlay.overlay-settings .sheet,.overlay.overlay-create .sheet{
+  background:
+    linear-gradient(127deg,rgba(255,255,255,.15),transparent 52%,rgba(255,255,255,.04)),
+    linear-gradient(160deg,rgba(37,31,57,.84),rgba(17,16,31,.87) 65%,rgba(43,31,61,.84))!important;
+  border:1px solid rgba(255,255,255,.29)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.25)!important;
+}
+/* Settings matches the same glass surface instead of switching to opaque black. */
+.overlay-settings .sheet .themes button,
+.overlay-settings .sheet .actions button,
+.overlay-settings .sheet select{
+  background:rgba(255,255,255,.07)!important;
+  border:1px solid rgba(255,255,255,.17)!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+.overlay-settings .sheet .themes button.selected{
+  background:rgba(255,255,255,.16)!important;
+  border-color:rgba(255,255,255,.70)!important;
+}
+.overlay-settings .sheet .themes button:active,
+.overlay-settings .sheet .actions button:active{transform:scale(.98)}
+.overlay-settings .setting input[type=range]::-webkit-slider-runnable-track{
+  background:linear-gradient(90deg,rgba(255,255,255,.56),rgba(255,255,255,.18))!important;
+}
+.overlay-settings .setting input[type=range]::-moz-range-track{
+  background:linear-gradient(90deg,rgba(255,255,255,.56),rgba(255,255,255,.18))!important;
+}
+/* The three panes share edge lighting so the shading transitions instead of stepping. */
+.pane::after{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:linear-gradient(180deg,
+    rgba(255,255,255,.07) 0%,
+    rgba(255,255,255,.015) 12%,
+    transparent 28%,transparent 72%,
+    rgba(4,3,11,.07) 91%,rgba(4,3,11,.16) 100%);
+}
+.pane-day{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(57,35,86,.095))!important}
+.pane-heap{background:linear-gradient(180deg,rgba(57,35,86,.095),rgba(19,13,43,.23))!important}
+.pane-trash{background:linear-gradient(180deg,rgba(19,13,43,.23),rgba(10,7,26,.38))!important}
+@media (prefers-reduced-motion:reduce){.overlay-minimal .sheet{animation:none!important}}
+
   </style>
 </head>
 <body>
@@ -1191,6 +1281,7 @@ body{color:var(--ink)!important}
       const openedAt=performance.now();
       overlay.addEventListener('click', e => { if (e.target === overlay && performance.now()-openedAt>330) closeSheet(); });
       overlay.querySelector('.x').onclick = closeSheet;
+      if(isCreate) overlay.classList.add('overlay-minimal');
       overlay.querySelector('h2').textContent = titleText;
       document.body.append(overlay);
       modal = overlay;
@@ -1210,6 +1301,7 @@ body{color:var(--ink)!important}
       if (surface === 'trash' || modal) return;
       feedback('create-open');
       const { body } = sheet('',true);
+      modal.querySelector('.sheet').setAttribute('aria-label','New task');
       body.innerHTML = '<div class="create-fields"><input id="newTitle" aria-label="Task title" type="text" maxlength="140" autocomplete="off"><textarea id="newDesc" aria-label="Optional description" maxlength="5000"></textarea><div class="actions create-actions"><button class="primary icon-submit" id="newSave" aria-label="Create task" title="Create task"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></button></div></div>';
       let adding=false;
       const add = () => {
@@ -1331,6 +1423,8 @@ body{color:var(--ink)!important}
 
     function openSettings(){
       const { body } = sheet('');
+      modal.classList.add('overlay-minimal','overlay-settings');
+      modal.querySelector('.sheet').setAttribute('aria-label','Settings');
       body.innerHTML = `
         <label>Atmosphere</label>
         <div class="themes">
@@ -1423,7 +1517,7 @@ body{color:var(--ink)!important}
             data.settings.colors=[$('colorA').value,$('colorB').value,$('colorC').value];
             data.settings.theme='custom';
           } else {
-            data.settings.theme=b.dataset.color;data.settings.colors=null;
+            data.settings.theme=b.dataset.color;
           }
           save();theme();toggleCustom();
           body.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('selected',x===b));feedback();
