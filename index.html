@@ -656,6 +656,75 @@
 }
 .themes [data-color=custom]{background:linear-gradient(115deg,#f4bfd8,#9fe5f4 55%,#d8bef6)!important;color:#32264a}
 
+
+/* v1.6 minimal surface system: typography, monochrome controls, gradient alone supplies colour */
+:root{--app-font:system-ui,-apple-system,Roboto,sans-serif;--ink:#fff;--contrast:255,255,255}
+body,button,input,textarea,select{font-family:var(--app-font)!important}
+body{color:var(--ink)!important}
+.heading{
+  letter-spacing:-.032em!important;
+  font-weight:450!important;
+  font-size:clamp(54px,13.4vw,85px)!important;
+}
+.task-name{letter-spacing:.012em!important}
+.sheet h2{letter-spacing:.004em!important}
+.sheet,.sheet *{letter-spacing:.01em}
+.sheet .handle,.sheet-header .handle,.handle{display:none!important}
+.sheet-header{margin-bottom:8px!important;min-height:26px;align-items:center!important}
+.sheet-header h2:empty{display:none!important}
+.sheet-header .x{margin-left:auto;font-size:25px;font-weight:300;line-height:1;padding:0 4px;border:0;background:none!important;color:var(--ink)!important}
+.sheet{padding-top:22px!important}
+.overlay-create .sheet{padding:24px!important;max-width:530px!important}
+.overlay-create .sheet-header{min-height:20px;margin-bottom:4px!important}
+.overlay-create input[type=text]{font-size:21px;padding:15px 8px!important;border:0!important;border-bottom:1px solid rgba(var(--contrast),.36)!important;border-radius:0!important;background:transparent!important}
+.overlay-create textarea{font-size:15px;border:0!important;border-radius:14px!important;background:rgba(var(--contrast),.06)!important;padding:15px!important;min-height:84px!important;resize:none!important}
+.sheet textarea.detail-desc{resize:none!important}
+.sheet .actions.create-actions{justify-content:flex-end;margin-top:8px}
+.icon-submit{display:grid;place-items:center;height:43px;width:54px;border-radius:999px!important;background:rgba(var(--contrast),.13)!important;color:var(--ink)!important;border:1px solid rgba(var(--contrast),.48)!important;padding:8px!important}
+.icon-submit svg{height:23px;width:23px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* Neutral chrome only: black, white, transparent; atmosphere remains the source of colour. */
+.sheet,.overlay-create .sheet{background:linear-gradient(155deg,rgba(var(--modal-rgb,0,0,0),.46),rgba(var(--modal-rgb,0,0,0),.29))!important;color:var(--ink)!important;border:1px solid rgba(var(--contrast),.36)!important;box-shadow:none!important}
+.overlay{background:rgba(0,0,0,.24)!important}
+.sheet .actions button,.sheet .choices button,.sheet .themes button,.sheet select,.sheet .icon-btn{
+  color:var(--ink)!important;
+  border-color:rgba(var(--contrast),.25)!important;
+  background:rgba(var(--contrast),.065)!important;
+  box-shadow:none!important;
+}
+.sheet .actions button.primary,.sheet .choices button.active,.sheet .themes .selected{border-color:rgba(var(--contrast),.8)!important;background:rgba(var(--contrast),.16)!important;color:var(--ink)!important}
+.sheet select{color:var(--ink)!important;min-width:116px;max-width:58%;text-align:right}
+.sheet select option{background:#111;color:white}
+.sheet .icon-btn svg{stroke:var(--ink)!important}
+.sheet input,.sheet textarea{color:var(--ink)!important;border-color:rgba(var(--contrast),.28)!important;background:rgba(var(--contrast),.06)!important}
+.sheet input::placeholder,.sheet textarea::placeholder{color:rgba(var(--contrast),.56)!important}
+.sheet .setting input[type=range],.sheet .setting input[type=checkbox]{accent-color:var(--ink)!important}
+.sheet label{font-size:11px!important;letter-spacing:.09em!important;text-transform:uppercase;font-weight:500;opacity:.72!important;margin:19px 0 9px!important}
+.sheet .setting{margin:16px 0!important}
+.themes{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+.themes button{background:rgba(var(--contrast),.055)!important;color:var(--ink)!important;font-size:12px!important;height:45px;border-radius:15px!important;padding:6px!important}
+.themes .selected{outline:none!important;border:1px solid rgba(var(--contrast),.85)!important}
+/* Three quiet native picker dots only in Custom. */
+.colour-wheel-row{display:flex!important;gap:16px!important;align-items:center;justify-content:center;margin:5px 0 13px}
+.colour-wheel-row[hidden]{display:none!important}
+.colour-wheel-row input[type=color]{appearance:none;-webkit-appearance:none;width:48px!important;height:48px!important;border:1px solid rgba(var(--contrast),.65)!important;border-radius:50%!important;padding:4px!important;background:rgba(var(--contrast),.10)!important;overflow:hidden}
+.colour-wheel-row input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.colour-wheel-row input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
+.colour-wheel-row input[type=color]::-moz-color-swatch{border:0;border-radius:50%}
+.task,.column-list .task,.completed-card{
+ background:linear-gradient(115deg,rgba(var(--contrast),.11),rgba(var(--contrast),.025) 53%,rgba(var(--contrast),.095))!important;
+ border:1px solid rgba(var(--contrast),.5)!important;
+ box-shadow:inset 0 1px rgba(var(--contrast),.30)!important;
+ color:var(--ink)!important;
+}
+.task::before{background:linear-gradient(90deg,transparent,rgba(var(--contrast),.32),transparent)!important}
+/* Always expose a sliver of the following column. No horizontal fade. */
+.content.column-scroller .column-list{grid-auto-columns:85%!important;column-gap:12px!important;padding-right:0!important}
+.column-list .task{width:100%!important;max-width:100%!important}
+.pane-heap .fade,.pane-trash .fade,.fade-x{display:none!important}
+.heap-settings{background:rgba(var(--contrast),.08)!important;border:1px solid rgba(var(--contrast),.42)!important;box-shadow:none!important}
+.heap-settings svg{stroke:var(--ink)!important}
+@media (prefers-reduced-motion:reduce){.overlay-create .sheet{animation:none!important}}
+
   </style>
 </head>
 <body>
@@ -720,7 +789,7 @@
     try { data = JSON.parse(localStorage.getItem(KEY)); } catch {}
     if (!data || !Array.isArray(data.tasks)) data = { tasks: [], trash: [], settings: {}, lastDate: todayKey() };
     data.trash = Array.isArray(data.trash) ? data.trash : [];
-    data.settings = Object.assign({ sound:true, haptics:true, dim:34, theme:'iridescent', motion:true, colors:null }, data.settings);
+    data.settings = Object.assign({ sound:true, haptics:true, dim:34, theme:'iridescent', motion:true, colors:null, font:'system', inkMode:'auto' }, data.settings);
     if (!['iridescent','moon','blue','dark','light','custom'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
     if(Array.isArray(data.settings.colors) && data.settings.colors.length===3 && data.settings.theme!=='custom') data.settings.theme='custom';
     data.settings.gradientOpacity ??= 72;
@@ -794,15 +863,35 @@
         ? [userColors[0],userColors[1],userColors[2],userColors[0],userColors[2],userColors[1],userColors[0]]
         : defaultPalette;
       const light=data.settings.theme==='light';
-      document.documentElement.style.setProperty('--ink',light?'#342747':'#fcf7ff');
+      // Text colour and font are set from the accessibility/display preferences below.
       const dark=data.settings.theme==='dark';
       const menuPalettes={iridescent:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)'],moon:['rgba(151,137,190,.96)','rgba(100,91,149,.97)','rgba(121,103,157,.97)'],blue:['rgba(149,211,236,.94)','rgba(129,183,224,.96)','rgba(159,166,224,.97)'],dark:['rgba(65,61,87,.97)','rgba(42,43,65,.98)','rgba(63,52,83,.98)'],light:['rgba(255,250,255,.97)','rgba(231,245,255,.97)','rgba(240,232,253,.97)'],custom:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)']};
       const menuColors=menuPalettes[data.settings.theme]||menuPalettes.iridescent;
       document.documentElement.style.setProperty('--menu-a',menuColors[0]);
       document.documentElement.style.setProperty('--menu-b',menuColors[1]);
       document.documentElement.style.setProperty('--menu-c',menuColors[2]);
-      document.documentElement.style.setProperty('--menu-ink', data.settings.theme==='light' ? '#2f2442' : '#faf7ff');
+
       document.documentElement.style.setProperty('--menu-input', data.settings.theme==='light' ? 'rgba(255,255,255,.72)' : 'rgba(255,255,255,.14)');
+      const fontFamilies={
+        system:'system-ui,-apple-system,Roboto,sans-serif',
+        inter:'Inter,system-ui,Roboto,sans-serif',
+        rounded:'ui-rounded,"Arial Rounded MT Bold","sans-serif-rounded",system-ui,sans-serif',
+        clean:'Arial,Roboto,Helvetica,sans-serif',
+        modern:'"Helvetica Neue",Arial,Roboto,sans-serif',
+        geometric:'"Century Gothic","Trebuchet MS",system-ui,sans-serif',
+        humanist:'"Trebuchet MS","Segoe UI",system-ui,sans-serif',
+        condensed:'"Roboto Condensed","sans-serif-condensed",Roboto,sans-serif',
+        light:'"Roboto Light","sans-serif-light",system-ui,sans-serif',
+        serif:'Georgia,"Noto Serif",serif',
+        editorial:'"Times New Roman","Noto Serif",serif',
+        mono:'"Roboto Mono","SFMono-Regular",monospace'
+      };
+      document.documentElement.style.setProperty('--app-font',fontFamilies[data.settings.font]||fontFamilies.system);
+      const ink=data.settings.inkMode==='white'?'#fff':data.settings.inkMode==='black'?'#000':light?'#000':'#fff';
+      document.documentElement.style.setProperty('--ink',ink);
+      document.documentElement.style.setProperty('--menu-ink',ink);
+      document.documentElement.style.setProperty('--contrast', ink==='#000'?'0,0,0':'255,255,255');
+      document.documentElement.style.setProperty('--modal-rgb',ink==='#000'?'255,255,255':'0,0,0');
       const hasPhoto=!!data.settings.backgroundImage;
       const blur=Math.max(0,Math.min(32,+data.settings.backgroundBlur||0));
       document.documentElement.style.setProperty('--photo-blur',blur+'px');
@@ -1086,8 +1175,8 @@
     function openCreate(){
       if (surface === 'trash' || modal) return;
       feedback('create-open');
-      const { body } = sheet('New task',true);
-      body.innerHTML = '<label for="newTitle">Title</label><input id="newTitle" type="text" maxlength="140" placeholder="What needs doing?"><label for="newDesc">Description · optional</label><textarea id="newDesc" maxlength="5000" placeholder="Add some detail…"></textarea><div class="actions"><button class="primary" id="newSave">Add task</button></div>';
+      const { body } = sheet('',true);
+      body.innerHTML = '<input id="newTitle" aria-label="Task title" type="text" maxlength="140" placeholder="What needs doing?" autocomplete="off"><textarea id="newDesc" aria-label="Optional details" maxlength="5000" placeholder="Details…"></textarea><div class="actions create-actions"><button class="primary icon-submit" id="newSave" aria-label="Create task" title="Create task"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></button></div>';
       let adding=false;
       const add = () => {
         if(adding)return;
@@ -1207,7 +1296,7 @@
     }
 
     function openSettings(){
-      const { body } = sheet('Settings');
+      const { body } = sheet('');
       body.innerHTML = `
         <label>Atmosphere</label>
         <div class="themes">
@@ -1215,37 +1304,41 @@
           <button data-color="blue">Blue</button><button data-color="dark">Simple dark</button>
           <button data-color="light">Simple light</button><button data-color="custom">Custom</button>
         </div>
-        <label>Custom gradient · tap each colour wheel</label>
-        <div class="colour-wheel-row">
-          <div><label for="colorA">Blush</label><input id="colorA" type="color"></div>
-          <div><label for="colorB">Sky</label><input id="colorB" type="color"></div>
-          <div><label for="colorC">Lavender</label><input id="colorC" type="color"></div>
+        <label class="custom-label">Colour</label>
+        <div class="colour-wheel-row" id="customWheels">
+          <input id="colorA" aria-label="Gradient colour one" type="color"><input id="colorB" aria-label="Gradient colour two" type="color"><input id="colorC" aria-label="Gradient colour three" type="color">
         </div>
-        <label>Custom background image</label>
+        <label>Background</label>
         <div class="actions">
-          <button id="imageUpload">Import image</button><button id="removeImage">Remove image</button>
+          <button id="imageUpload">Import</button><button id="removeImage">Remove</button>
           <input id="backgroundFile" type="file" accept="image/png,image/jpeg,image/webp" hidden>
         </div>
-        <p class="upload-note">Images are saved on this device. For storage reliability, choose a small photo.</p>
         <div class="setting"><span>Gradient over photo</span><input id="gradientOpacity" type="range" min="0" max="100"></div>
         <div class="setting"><span>Background image blur</span><input id="backgroundBlur" type="range" min="0" max="32" step="1"></div>
+        <label>Typography</label>
+        <div class="setting"><span>Font</span><select id="fontSelect" aria-label="App font">
+          <option value="system">System</option><option value="inter">Inter style</option><option value="rounded">Rounded</option>
+          <option value="clean">Arial</option><option value="modern">Helvetica</option><option value="geometric">Geometric</option>
+          <option value="humanist">Humanist</option><option value="condensed">Condensed</option><option value="light">Light</option>
+          <option value="serif">Georgia</option><option value="editorial">Editorial serif</option><option value="mono">Monospace</option>
+        </select></div>
+        <div class="setting"><span>Text</span><select id="inkSelect" aria-label="Text colour"><option value="auto">Automatic</option><option value="white">White</option><option value="black">Black</option></select></div>
         <div class="setting"><span>Heap decay</span><select id="heapDecayDays" aria-label="Permanently remove completed tasks after"><option value="1">1 day</option><option value="3">3 days</option><option value="7">1 week</option><option value="14">2 weeks</option><option value="30">30 days</option><option value="0">Never</option></select></div>
-        <div class="actions"><button id="resetBackground">Reset background to default</button></div>
+        <div class="actions"><button id="resetBackground">Reset background</button></div>
         <div class="setting"><span>Darken background</span><input type="range" min="0" max="90" id="dim"></div>
         <div class="setting"><span>Sounds</span><input id="sound" type="checkbox"></div>
         <div class="setting"><span>Haptics</span><input id="haptics" type="checkbox"></div>
         <div class="setting"><span>Motion</span><input id="motion" type="checkbox"></div>
         <div class="actions"><button id="backup">Export backup</button><button id="restoreBackup">Import backup</button><input id="importFile" type="file" accept=".json,application/json" hidden></div>
-        <p class="note">Hold empty space to add. Tap a task for details, hold to complete. Swipe down from a weekday for Todo, then again for Heap. Swipe up to return. Hold a downward pull at the bottom edge for a surprise.</p>
-        <div class="actions"><button id="done" class="primary">Done</button></div>
       `;
       const custom=data.settings.colors||['#f4bfd8','#9fe5f4','#d8bef6'];
+      const toggleCustom=()=>{const active=data.settings.theme==='custom';$('customWheels').hidden=!active;body.querySelector('.custom-label').hidden=!active;};
       ['colorA','colorB','colorC'].forEach((id,i)=>{
         $(id).value=custom[i];
         $(id).oninput=()=>{
           data.settings.colors=[$('colorA').value,$('colorB').value,$('colorC').value];
           data.settings.theme='custom';
-          save();theme();
+          save();theme();toggleCustom();
           body.querySelectorAll('[data-color]').forEach(b=>b.classList.toggle('selected',b.dataset.color==='custom'));
         };
       });
@@ -1298,14 +1391,19 @@
           } else {
             data.settings.theme=b.dataset.color;data.settings.colors=null;
           }
-          save();theme();
+          save();theme();toggleCustom();
           body.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('selected',x===b));feedback();
         };
       });
+      toggleCustom();
+      $('fontSelect').value=data.settings.font||'system';
+      $('fontSelect').onchange=e=>{data.settings.font=e.target.value;save();theme()};
+      $('inkSelect').value=data.settings.inkMode||'auto';
+      $('inkSelect').onchange=e=>{data.settings.inkMode=e.target.value;save();theme()};
       $('backup').onclick=exportBackup;
       $('restoreBackup').onclick=()=>$('importFile').click();
       $('importFile').onchange=e=>importBackup(e.target.files[0]);
-      $('done').onclick=closeSheet;
+
     }
 
     function syncFades(scroller, topFade, bottomFade){
@@ -1314,8 +1412,8 @@
         const horizontal=scroller.classList.contains('column-scroller');
         const overflow = horizontal ? scroller.scrollWidth > scroller.clientWidth+2 : scroller.scrollHeight > scroller.clientHeight+2;
         scroller.classList.toggle('no-scroll', !overflow);
-        topFade.classList.toggle('show', overflow && (horizontal ? scroller.scrollLeft>3 : scroller.scrollTop>3));
-        bottomFade.classList.toggle('show', overflow && (horizontal ? scroller.scrollLeft+scroller.clientWidth<scroller.scrollWidth-3 : scroller.scrollTop+scroller.clientHeight<scroller.scrollHeight-3));
+        topFade.classList.toggle('show', !horizontal && overflow && scroller.scrollTop>3);
+        bottomFade.classList.toggle('show', !horizontal && overflow && scroller.scrollTop+scroller.clientHeight<scroller.scrollHeight-3);
       });
     }
 

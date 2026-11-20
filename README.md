@@ -1,16 +1,24 @@
-# Emiliarity v1.5 — small visual refinements
+# Emiliarity v1.6 — Minimal UI
+
+A clean-up update preserving the app's task interactions, data model, and both Emilia Easter eggs.
 
 ## Changes
-- Top Emilia is hidden fully above Heap at rest and is revealed only as you pull farther.
-- Removed the heavy extra line-thickening effect from top Emilia.
-- Custom is now an explicit atmosphere option. Changing a gradient colour activates Custom automatically; choosing a preset switches back to that preset.
-- Bottom Emilia is displayed at roughly 70% of its previous size, a little farther down, and its reveal distance is capped to match.
-- All original icon files and illustration image files remain unchanged.
+- Looser heading/task letter spacing.
+- Twelve font-family choices in Settings, with platform fallback fonts for offline use.
+- Automatic / white / black text preference.
+- Minimal monochrome controls: black and white only, while the selected dynamic gradient remains the source of colour.
+- No grey sheet handle, no Done button, no extra task-creation title/field labels.
+- Task creation uses a compact title field, optional details field, and checkmark submit action; Enter in the title submits immediately.
+- No visible textarea resize grip.
+- Compact custom gradient pickers appear only while Custom atmosphere is selected.
+- No horizontal scroll fade on Todo or Heap.
+- Upper task columns occupy approximately 85% width so a portion of the next column remains visible.
+- Existing icons and Emilia illustrations unchanged.
 
-## Deploy
-1. Export a task backup first.
-2. Extract this ZIP and upload the files **inside** `emiliarity/` to the root of your GitHub repository.
-3. Commit the changes. Keep GitHub Pages set to `main` / `(root)`.
-4. Once Pages redeploys, refresh the live site on Android.
+## Installation
+1. Export a task backup in Settings.
+2. Upload all files from this folder to the root of the GitHub Pages repository, replacing the previous version.
+3. Commit and let Pages deploy.
+4. Refresh the site in Chrome and reopen Emiliarity.
 
-Tasks are kept in the same browser storage location as before. Do not clear browser storage to force an update.
+Fonts are backed by locally available platform typefaces. Some styles may look similar on Android devices lacking a particular family. No external font download is required for the app to work offline.
