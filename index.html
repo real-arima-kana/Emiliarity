@@ -399,6 +399,30 @@
 .setting input[type=color]{width:56px;height:38px;padding:3px;border-radius:12px;border:1px solid #ffffff66;background:#ffffff25}
 .no-motion .sky{animation:none!important}
 
+
+/* v0.6 — bubblegum glow, independent Todo and Heap, creation bloom */
+:root{--heap-tone:rgba(24,14,43,.20);--trash-tone:rgba(15,9,26,.36)}
+.sky{animation:chromaticWander 13s ease-in-out infinite alternate!important;transform-origin:50% 50%;filter:saturate(1.30)}
+.sky::before{animation:prismSlide 9s ease-in-out infinite alternate!important;filter:blur(13px)}
+@keyframes chromaticWander{0%{transform:scale(1.03) translate(-3%,-3%);filter:hue-rotate(-12deg) saturate(1.23)}48%{transform:scale(1.10) translate(4%,2%);filter:hue-rotate(14deg) saturate(1.58)}100%{transform:scale(1.06) translate(-2%,5%);filter:hue-rotate(-8deg) saturate(1.35)}}
+@keyframes prismSlide{0%{transform:translate(-7%,-3%) rotate(-7deg) scale(1.05)}100%{transform:translate(8%,5%) rotate(9deg) scale(1.16)}}
+.task{border:1px solid rgba(255,255,255,.59);border-radius:29px;background:radial-gradient(ellipse at 14% 0%,rgba(255,225,241,.38),transparent 55%),radial-gradient(ellipse at 90% 92%,rgba(132,220,250,.32),transparent 52%),linear-gradient(122deg,rgba(255,209,233,.24),rgba(174,164,252,.11) 58%,rgba(129,230,246,.22));box-shadow:inset 0 1.5px rgba(255,255,255,.75),inset 0 -2px rgba(255,217,244,.22);backdrop-filter:blur(15px) saturate(1.9);-webkit-backdrop-filter:blur(15px) saturate(1.9)}
+.task::after{background:linear-gradient(116deg,transparent 18%,rgba(255,255,255,.16) 35%,rgba(255,255,255,0) 49%)}
+.pane-heap{background:linear-gradient(180deg,rgba(29,13,57,.08),rgba(12,9,30,.3))}
+.pane-trash{background:linear-gradient(180deg,rgba(19,8,34,.16),rgba(9,6,23,.49))}
+.rubble-mound{position:relative;width:100%;min-height:340px;isolation:isolate}
+.rubble-mound:before{content:"";position:absolute;left:3%;right:3%;bottom:4px;height:28px;border-radius:50%;background:rgba(13,9,27,.22);filter:blur(17px)}
+.rubble-card{position:absolute;left:var(--rubble-left);top:var(--rubble-top);z-index:var(--rubble-z);width:clamp(118px,52%,240px);min-height:60px;padding:12px 15px;text-align:left;overflow-wrap:anywhere;color:#fff;border:1px solid rgba(255,255,255,.52);border-radius:12px 21px 14px 19px;background:linear-gradient(133deg,rgba(255,218,238,.42),rgba(158,203,251,.21) 57%,rgba(222,166,249,.34));backdrop-filter:blur(13px) saturate(1.6);-webkit-backdrop-filter:blur(13px) saturate(1.6);box-shadow:inset 0 1px rgba(255,255,255,.62),0 6px 8px rgba(8,4,17,.11);transform:rotate(var(--rubble-rot));animation:rubbleDrop .55s cubic-bezier(.2,1.15,.36,1) both;animation-delay:var(--rubble-delay)}
+.rubble-card:nth-child(5n+2){background:linear-gradient(135deg,rgba(136,220,244,.46),rgba(200,175,252,.24))}
+.rubble-card:nth-child(5n+3){background:linear-gradient(135deg,rgba(248,174,220,.42),rgba(245,211,165,.24))}
+.rubble-card:nth-child(5n+4){background:linear-gradient(135deg,rgba(175,148,255,.4),rgba(161,218,247,.21))}
+@keyframes rubbleDrop{from{opacity:0;transform:translateY(-125px) rotate(calc(var(--rubble-rot) * -1)) scale(.82)}to{opacity:1;transform:translateY(0) rotate(var(--rubble-rot)) scale(1)}}
+.overlay-create{align-items:center;padding:16px}
+.overlay-create .sheet{max-width:570px;max-height:87dvh;border-radius:32px;animation:createBloom .34s cubic-bezier(.17,1.12,.34,1) both;background:linear-gradient(135deg,rgba(138,115,191,.93),rgba(72,50,119,.97) 65%,rgba(42,35,81,.98))}
+.overlay-create .handle{display:none}
+@keyframes createBloom{from{opacity:0;transform:scale(.78);filter:blur(15px)}65%{opacity:1}to{opacity:1;transform:scale(1);filter:blur(0)}}
+.no-motion .sky,.no-motion .sky::before{animation:none!important}
+
   </style>
 </head>
 <body>
@@ -406,7 +430,7 @@
   <main class="shell" id="shell">
     <div class="stage" id="stage">
       <section class="pane pane-trash">
-        <h1 class="heading">Archive</h1>
+        <h1 class="heading">Heap</h1>
         <div class="content-wrap">
           <div class="fade fade-top" id="trashFadeTop"></div>
           <div class="fade fade-bottom" id="trashFadeBottom"></div>
@@ -418,7 +442,7 @@
         <button class="heap-settings" id="heapSettings" aria-label="Settings">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19 13.7a1.7 1.7 0 0 0 .3 1.9l-1.6 2.7a1.7 1.7 0 0 0-1.8-.3l-1.3.7a1.7 1.7 0 0 0-1 1.4h-3.2a1.7 1.7 0 0 0-1-1.4l-1.3-.7a1.7 1.7 0 0 0-1.8.3l-1.6-2.7a1.7 1.7 0 0 0 .3-1.9v-1.4a1.7 1.7 0 0 0-1.1-1.5V7.6a1.7 1.7 0 0 0 1.8-.3L8 6.6a1.7 1.7 0 0 0 1-1.4h3.2a1.7 1.7 0 0 0 1 1.4l1.3.7a1.7 1.7 0 0 0 1.8-.3l1.6 2.7a1.7 1.7 0 0 0-.3 1.9z"></path></svg>
         </button>
-        <h1 class="heading">Heap</h1>
+        <h1 class="heading">Todo</h1>
         <div class="content-wrap">
           <div class="fade fade-top" id="heapFadeTop"></div>
           <div class="fade fade-bottom" id="heapFadeBottom"></div>
@@ -523,7 +547,7 @@
 
     function vibration(kind){
       if (!data.settings.haptics) return;
-      try { navigator.vibrate?.(kind === 'finish' ? [14,24,18] : kind === 'hold' ? 18 : 8); } catch {}
+      try { navigator.vibrate?.(kind === 'finish' ? [18,22,26] : kind === 'create-open' ? [13,32,20] : kind === 'hold' ? 18 : 8); } catch {}
     }
     function chime(kind='tap'){
       if (!data.settings.sound) return;
@@ -604,57 +628,38 @@
     }
 
     function renderTrash(){
-      const list = $('trashList');
-      list.innerHTML = '';
-      const pile = document.createElement('div');
-      pile.className = 'trash-pile';
-      const items = data.trash.slice(0,80);
-      pile.style.height = Math.max(0, items.length * 72 + 115) + 'px';
-      items.forEach((t, i) => {
-        const p = document.createElement('button');
-        p.className = 'paper';
-        p.style.setProperty('--left', `${5 + (i*37 % 64)}%`);
-        p.style.setProperty('--top', `${24 + i*72}px`);
-        p.style.setProperty('--width', `${41 + (i%3)*4}%`);
-        p.style.setProperty('--rot', `${((i*31)%32)-16}deg`);
-        p.style.setProperty('--delay', `${Math.min(i*45,420)}ms`);
-        p.textContent = t.title;
-        const small = document.createElement('small');
-        small.textContent = 'Tap to restore';
-        p.append(small);
-        p.onclick = () => restore(t.id);
-        pile.append(p);
-      });
-      list.append(pile);
-      syncFades($('trashContent'), $('trashFadeTop'), $('trashFadeBottom'));
-    }
-
-    function renderHeap(){
-      const list = $('heapList');
-      list.innerHTML = '';
-      const pile = document.createElement('div');
-      pile.className = 'heap-pile';
-      const pending = data.tasks.filter(t => t.day === 'heap').map(t => ({...t, isCompleted:false}));
-      const complete = data.completed.map(t => ({...t, isCompleted:true}));
-      const all = [...pending, ...complete].sort((a,b) => (a.completedAt||a.createdAt||0)-(b.completedAt||b.createdAt||0));
-      const maxHeight = Math.max(0, all.length*34+110);
-      pile.style.height = maxHeight+'px';
-      all.forEach((t,i) => {
-        const item = taskCard(t,i);
-        item.classList.add('heap-slip');
-        if (t.isCompleted) item.classList.add('completed');
-        const row = Math.floor(i/4);
-        const col = i%4;
-        const seed = (i * 43 + 17) % 100;
-        item.style.setProperty('--pile-width',`${72+((i*7)%17)}%`);
-        item.style.setProperty('--pile-left',`${4 + (col*9 + seed%13)%22}%`);
-        item.style.setProperty('--pile-top',`${9 + row*114 + col*22}px`);
-        item.style.setProperty('--pile-rot',`${((i*19)%19)-9}deg`);
-        item.style.setProperty('--pile-z',i+1);
-        item.style.setProperty('--pile-delay',`${Math.min(i*22,180)}ms`);
+      const list=$('trashList');list.innerHTML='';
+      const items=[
+        ...data.trash.map(t=>({...t,legacy:true,at:t.deletedAt||t.createdAt||0})),
+        ...data.completed.map(t=>({...t,legacy:false,at:t.completedAt||t.createdAt||0}))
+      ].sort((a,b)=>a.at-b.at);
+      const pile=document.createElement('div');pile.className='rubble-mound';
+      const rows=Math.ceil(items.length/5);
+      pile.style.height=Math.max(340,rows*65+250)+'px';
+      // The cards gradually stack across a tapered mound rather than in a grid.
+      items.forEach((t,i)=>{
+        const row=Math.floor(i/5),col=i%5;
+        const item=document.createElement('button');
+        item.className='rubble-card';
+        const seed=(i*29+17)%53;
+        const taper=(row%4)*5;
+        item.style.setProperty('--rubble-left',`${4+(col*12 +seed%9)%66+taper/3}%`);
+        item.style.setProperty('--rubble-top',`${Math.max(18,215-row*4)+row*65+(seed%27)}px`);
+        item.style.setProperty('--rubble-rot',`${(i*31%39)-19}deg`);
+        item.style.setProperty('--rubble-z',i+1);
+        item.style.setProperty('--rubble-hue',`${(i*51)%360}deg`);
+        item.style.setProperty('--rubble-delay',`${Math.min(240,i*16)}ms`);
+        item.textContent=t.title;
+        item.title=t.legacy?'Restore old task':'Restore completed task';
+        item.onclick=()=>t.legacy?restore(t.id):openCompleted(t.id);
         pile.append(item);
       });
       list.append(pile);
+      syncFades($('trashContent'),$('trashFadeTop'),$('trashFadeBottom'));
+    }
+
+    function renderHeap(){
+      renderTaskList($('heapList'),data.tasks.filter(t=>t.day==='heap'));
       syncFades($('heapContent'),$('heapFadeTop'),$('heapFadeBottom'));
     }
 
@@ -754,10 +759,10 @@
       el.addEventListener('contextmenu', e => e.preventDefault());
     }
 
-    function sheet(titleText){
+    function sheet(titleText,isCreate=false){
       closeSheet();
       const overlay = document.createElement('div');
-      overlay.className = 'overlay';
+      overlay.className = 'overlay'+(isCreate?' overlay-create':'');
       overlay.innerHTML = '<section class="sheet" role="dialog" aria-modal="true"><div class="handle"></div><div class="sheet-header"><h2></h2><button class="x" aria-label="Close">×</button></div><div class="sheet-body"></div></section>';
       overlay.addEventListener('click', e => { if (e.target === overlay) closeSheet(); });
       overlay.querySelector('.x').onclick = closeSheet;
@@ -778,8 +783,8 @@
 
     function openCreate(){
       if (surface === 'trash' || modal) return;
-      feedback('hold');
-      const { body } = sheet('New task');
+      feedback('create-open');
+      const { body } = sheet('New task',true);
       body.innerHTML = '<label for="newTitle">Title</label><input id="newTitle" type="text" maxlength="140" placeholder="What needs doing?"><label for="newDesc">Description · optional</label><textarea id="newDesc" maxlength="5000" placeholder="Add some detail…"></textarea><div class="actions"><button class="primary" id="newSave">Add task</button></div>';
       const add = () => {
         const name = $('newTitle').value.trim();
@@ -861,7 +866,7 @@
     }
 
     function exportBackup(){
-      const blob = new Blob([JSON.stringify({app:'emiliarity',version:5,exportedAt:new Date().toISOString(),tasks:data.tasks,trash:data.trash,completed:data.completed,settings:data.settings,lastDate:data.lastDate},null,2)], {type:'application/json'});
+      const blob = new Blob([JSON.stringify({app:'emiliarity',version:6,exportedAt:new Date().toISOString(),tasks:data.tasks,trash:data.trash,completed:data.completed,settings:data.settings,lastDate:data.lastDate},null,2)], {type:'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -898,7 +903,7 @@
 
     function openSettings(){
       const { body } = sheet('Settings');
-      body.innerHTML = '<label>Atmosphere</label><div class="themes"><button data-color="iridescent">Iridescent</button><button data-color="moon">Moon</button><button data-color="blue">Blue</button></div><label>Custom gradient colours</label><div class="setting"><span>Blush</span><input id="colorA" type="color" value="#f4bfd8"></div><div class="setting"><span>Sky</span><input id="colorB" type="color" value="#9fe5f4"></div><div class="setting"><span>Lavender</span><input id="colorC" type="color" value="#d8bef6"></div><div class="actions"><button id="resetBackground">Reset to default</button></div><div class="setting"><span>Darken background</span><input type="range" min="0" max="90" id="dim"></div><div class="setting"><span>Sounds</span><input id="sound" type="checkbox"></div><div class="setting"><span>Haptics</span><input id="haptics" type="checkbox"></div><div class="setting"><span>Motion</span><input id="motion" type="checkbox"></div><div class="actions"><button id="backup">Export backup</button><button id="restoreBackup">Import backup</button><input id="importFile" type="file" accept=".json,application/json" hidden></div><p class="note">Hold empty space to add. Tap a task for details and tap the title or description to edit. Hold a task to complete it into Heap, or choose permanent deletion. Swipe down for Heap, again for the legacy Archive. Swipe upward anywhere on the pile to return. Tasks are stored on this device, so export backups occasionally.</p><div class="actions"><button id="done" class="primary">Done</button></div>';
+      body.innerHTML = '<label>Atmosphere</label><div class="themes"><button data-color="iridescent">Iridescent</button><button data-color="moon">Moon</button><button data-color="blue">Blue</button></div><label>Custom gradient colours</label><div class="setting"><span>Blush</span><input id="colorA" type="color" value="#f4bfd8"></div><div class="setting"><span>Sky</span><input id="colorB" type="color" value="#9fe5f4"></div><div class="setting"><span>Lavender</span><input id="colorC" type="color" value="#d8bef6"></div><div class="actions"><button id="resetBackground">Reset to default</button></div><div class="setting"><span>Darken background</span><input type="range" min="0" max="90" id="dim"></div><div class="setting"><span>Sounds</span><input id="sound" type="checkbox"></div><div class="setting"><span>Haptics</span><input id="haptics" type="checkbox"></div><div class="setting"><span>Motion</span><input id="motion" type="checkbox"></div><div class="actions"><button id="backup">Export backup</button><button id="restoreBackup">Import backup</button><input id="importFile" type="file" accept=".json,application/json" hidden></div><p class="note">Hold empty space to add. Tap a task for details and tap the title or description to edit. Hold a task to complete it into the Heap, or use the trash icon for permanent deletion. Swipe down to Todo for unscheduled tasks, then again to Heap for completed tasks. Swipe up to return. Tasks are stored on this device, so export backups occasionally.</p><div class="actions"><button id="done" class="primary">Done</button></div>';
       $('dim').value = data.settings.dim;
       const custom = data.settings.colors || ['#f4bfd8','#9fe5f4','#d8bef6'];
       ['colorA','colorB','colorC'].forEach((id,i)=>{$(id).value=custom[i];$(id).oninput=()=>{data.settings.colors=[$('colorA').value,$('colorB').value,$('colorC').value];save();theme()}});
@@ -974,7 +979,7 @@
 
     const shell = $('shell');
     shell.addEventListener('touchstart', e => {
-      if (modal || e.target.closest('input,textarea,button')) return;
+      if (modal || e.target.closest('input,textarea,.heap-settings')) return;
       const p = e.touches[0];
       const scroller = e.target.closest('.content') || scrollerForSurface(surface);
       gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, surfaceAtStart: surface };

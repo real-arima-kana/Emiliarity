@@ -1,25 +1,27 @@
-# Emiliarity v0.5
+# Emiliarity v0.6
 
-Upload the **contents** of this folder into the root of your existing GitHub Pages repository. Keep your old URL and repo so local tasks stay on the same origin. Export a backup in Settings first.
+A minimal tactile weekly PWA for Android, hosted on GitHub Pages.
 
-## Changes
-- Translucent clear-glass tasks without bubbles or drop shadows
-- Completion (hold or check) moves a task to a layered physical-looking Heap pile
-- Permanent deletion is separate and requires confirmation
-- Completed tasks can be restored by tapping them in Heap
-- Archive is for older recoverable deletions from previous builds only
-- Upward swipes can exit Heap and Archive even if the pile is scrollable
-- Expanded tasks open without the keyboard or redundant Task heading; tap text to edit
-- More energetic completion burst effect
-- Gradient colours can be customized or reset to default; slow background animation
-- Identical Emilia icon artwork in both PNG sizes and matching embedded-image SVG
+## New in v0.6
+- The seven weekday lists are unchanged.
+- Swipe down once to **Todo**, a regular list for tasks not assigned to a weekday (previously named Heap).
+- Swipe down again to **Heap**, the layered pile of completed tasks (replaces the old Archive/Rubble view).
+- Long-hold on a task completes it and adds it to Heap. The separate delete icon still permanently deletes a task after confirmation.
+- Tap completed tasks in Heap to restore them to their original day, or delete them permanently.
+- Legacy removed tasks are shown in Heap and may be restored.
+- Task creation now expands and fades into place rather than sliding up; opening it gives an extra haptic pattern on supported Android phones.
+- More colourful, bubble-like translucent task cards and a more visible animated pastel gradient.
+- Existing background colour customization and reset remain in settings under Todo.
+- All app icon files are preserved unchanged from v0.5: icon.svg, icon-192.png, icon-512.png.
 
-## Update
-1. Open the old app: Heap → Settings → Export backup.
-2. Upload all seven files from this folder (not the folder itself) to the repository root and commit.
-3. Check Actions for GitHub Pages deployment.
-4. Reload the live page in Android Chrome. The installed version should update once its service worker refreshes.
-5. Do not clear site storage: that would erase locally saved tasks.
+## Update your existing GitHub Pages site
+1. Export a backup from your existing Emiliarity settings first.
+2. Extract this zip, then upload the files *inside* the emiliarity folder to the root of your GitHub repository.
+3. Commit the changes and confirm Pages deployment is green under Actions.
+4. Open your live URL in Android Chrome to refresh the service worker.
+5. Reopen your home-screen app. Do not clear browser/site data without a backup.
 
-## Notes
-The pile uses deterministic overlapping positions and CSS drop animation, not a true physics engine. Real Android touch behavior and visual performance still need on-device testing.
+Your tasks remain in localStorage under the original key (`drift-v1`) for compatibility.
+
+## Limitations
+Pile cards are layered and animated, not simulated with a full physics engine. Chrome vibration support varies by device. Physical Android touch tests remain necessary.
