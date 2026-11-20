@@ -725,6 +725,36 @@ body{color:var(--ink)!important}
 .heap-settings svg{stroke:var(--ink)!important}
 @media (prefers-reduced-motion:reduce){.overlay-create .sheet{animation:none!important}}
 
+
+/* v1.7 — quiet, predictable tap targets and honest clipped-card edges */
+.task{cursor:pointer;pointer-events:auto!important}
+.task:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+/* Single container enclosing a quiet title and optional details. No instructional text. */
+.overlay-create .sheet{background:rgba(10,10,13,.94)!important;border:1px solid rgba(255,255,255,.22)!important;color:#fff!important;max-width:500px!important;padding:20px!important}
+.overlay-create .sheet-header{margin:0 0 13px!important;min-height:20px}
+.overlay-create .sheet .x{color:#fff!important}
+.overlay-create .create-fields{border:1px solid rgba(255,255,255,.24);border-radius:24px;padding:12px;display:grid;gap:9px;background:rgba(255,255,255,.035)}
+.overlay-create .create-fields #newTitle,
+.overlay-create .create-fields #newDesc{display:block;color:#fff!important;background:rgba(255,255,255,.065)!important;border:1px solid rgba(255,255,255,.11)!important;border-radius:16px!important;outline:none;font-weight:450;letter-spacing:.012em}
+.overlay-create .create-fields #newTitle{font-size:19px!important;min-height:49px;padding:11px 14px!important}
+.overlay-create .create-fields #newDesc{font-size:15px!important;min-height:112px!important;max-height:200px;resize:none!important;padding:13px 14px!important;line-height:1.55}
+.overlay-create .create-fields :is(#newTitle,#newDesc):focus{border-color:rgba(255,255,255,.55)!important;background:rgba(255,255,255,.085)!important}
+.overlay-create .create-actions{margin:0!important;justify-content:flex-end}
+.overlay-create .icon-submit{height:41px;width:49px;background:rgba(255,255,255,.13)!important;color:#fff!important;border-color:rgba(255,255,255,.38)!important}
+/* Settings is always a deep black glass surface, regardless of chosen atmosphere. */
+.overlay:not(.overlay-create) .sheet{background:rgba(10,10,13,.96)!important;border:1px solid rgba(255,255,255,.18)!important;color:#fff!important;--contrast:255,255,255;--ink:#fff;--menu-ink:#fff;--modal-rgb:0,0,0}
+.overlay:not(.overlay-create) .sheet :is(button,select,input,textarea,.x){color:#fff!important}
+.overlay:not(.overlay-create) .sheet select option{background:#111!important;color:#fff!important}
+.overlay:not(.overlay-create) .sheet .setting input[type=range]{appearance:none;-webkit-appearance:none;display:block;width:min(47%,200px);height:24px;background:transparent!important;border:0!important;cursor:pointer;accent-color:#fff!important}
+.overlay:not(.overlay-create) .sheet .setting input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:99px;background:rgba(255,255,255,.24)}
+.overlay:not(.overlay-create) .sheet .setting input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:16px;height:16px;background:#fff;border:3px solid #151518;border-radius:50%;margin-top:-6px;box-shadow:0 0 0 1px rgba(255,255,255,.52)}
+.overlay:not(.overlay-create) .sheet .setting input[type=range]::-moz-range-track{height:4px;border-radius:99px;background:rgba(255,255,255,.24)}
+.overlay:not(.overlay-create) .sheet .setting input[type=range]::-moz-range-thumb{width:12px;height:12px;background:#fff;border:2px solid #151518;border-radius:50%}
+/* Soft edge only where an additional column extends past the scroll viewport. */
+.content.column-scroller{--edge-mask-l:0px;--edge-mask-r:0px;mask-image:linear-gradient(to right,transparent 0,#000 var(--edge-mask-l),#000 calc(100% - var(--edge-mask-r)),transparent 100%);-webkit-mask-image:linear-gradient(to right,transparent 0,#000 var(--edge-mask-l),#000 calc(100% - var(--edge-mask-r)),transparent 100%)}
+.content.column-scroller.edge-left{--edge-mask-l:20px}
+.content.column-scroller.edge-right{--edge-mask-r:29px}
+
   </style>
 </head>
 <body>
@@ -1113,40 +1143,43 @@ body{color:var(--ink)!important}
     }
 
     function taskHold(el, id){
-      let timer = null, start = null, fired = false, cancelled = false;
-      const reset = () => { clearTimeout(timer); timer = null; el.classList.remove('holding'); };
-      el.addEventListener('pointerdown', e => {
-        if (e.pointerType === 'mouse' && e.button !== 0) return;
-        fired = false; cancelled = false;
-        start = [e.clientX, e.clientY];
+      // One reliable pointer path for mouse, pen and touch; scrolling never opens a task.
+      let press=null, timer=null, swallowClickUntil=0;
+      const reset=()=>{clearTimeout(timer);timer=null;el.classList.remove('holding');};
+      el.addEventListener('pointerdown',e=>{
+        if(modal || (e.pointerType==='mouse' && e.button!==0))return;
         reset();
+        press={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false,finished:false};
         el.classList.add('holding');
-        timer = setTimeout(() => {
-          fired = true;
-          suppressClickUntil = Date.now() + 180;
+        timer=setTimeout(()=>{
+          if(!press||press.moved||press.finished)return;
+          press.finished=true;
+          swallowClickUntil=Date.now()+600;
+          suppressClickUntil=Date.now()+160;
           reset();
-          finish(id, el);
-        }, 510);
+          finish(id,el);
+        },510);
       });
-      el.addEventListener('pointermove', e => {
-        if (start && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > 13) { cancelled = true; reset(); }
+      el.addEventListener('pointermove',e=>{
+        if(!press||press.id!==e.pointerId)return;
+        if(Math.hypot(e.clientX-press.x,e.clientY-press.y)>12){press.moved=true;reset();}
       });
-      let touchOpened = false;
-      el.addEventListener('pointerup', e => {
-        const tapped=!!start && !fired && !cancelled && Math.hypot(e.clientX-start[0],e.clientY-start[1])<13;
-        reset();
-        if (tapped && e.pointerType==='touch') {
-          touchOpened=true;
-          openTask(id); // Don't depend on a delayed synthetic click on Android.
+      el.addEventListener('pointerup',e=>{
+        if(!press||press.id!==e.pointerId)return;
+        const tapped=!press.moved&&!press.finished&&Math.hypot(e.clientX-press.x,e.clientY-press.y)<13;
+        reset();press=null;
+        if(tapped&&!modal){
+          swallowClickUntil=Date.now()+600;
+          openTask(id);
         }
       });
-      el.addEventListener('pointercancel', () => { cancelled = true; reset(); });
-      el.addEventListener('click', e => {
-        if(touchOpened){touchOpened=false;e.preventDefault();return;}
-        if (fired || cancelled || Date.now() < suppressClickUntil) { e.preventDefault(); return; }
+      el.addEventListener('pointercancel',()=>{reset();press=null;});
+      // Keyboard/synthetic click fallback. Pointer events have already handled normal taps.
+      el.addEventListener('click',e=>{
+        if(Date.now()<swallowClickUntil||Date.now()<suppressClickUntil||modal){e.preventDefault();return;}
         openTask(id);
       });
-      el.addEventListener('contextmenu', e => e.preventDefault());
+      el.addEventListener('contextmenu',e=>e.preventDefault());
     }
 
     function sheet(titleText,isCreate=false){
@@ -1155,7 +1188,8 @@ body{color:var(--ink)!important}
       const overlay = document.createElement('div');
       overlay.className = 'overlay'+(isCreate?' overlay-create':'');
       overlay.innerHTML = '<section class="sheet" role="dialog" aria-modal="true"><div class="handle"></div><div class="sheet-header"><h2></h2><button class="x" aria-label="Close">×</button></div><div class="sheet-body"></div></section>';
-      overlay.addEventListener('click', e => { if (e.target === overlay) closeSheet(); });
+      const openedAt=performance.now();
+      overlay.addEventListener('click', e => { if (e.target === overlay && performance.now()-openedAt>330) closeSheet(); });
       overlay.querySelector('.x').onclick = closeSheet;
       overlay.querySelector('h2').textContent = titleText;
       document.body.append(overlay);
@@ -1176,7 +1210,7 @@ body{color:var(--ink)!important}
       if (surface === 'trash' || modal) return;
       feedback('create-open');
       const { body } = sheet('',true);
-      body.innerHTML = '<input id="newTitle" aria-label="Task title" type="text" maxlength="140" placeholder="What needs doing?" autocomplete="off"><textarea id="newDesc" aria-label="Optional details" maxlength="5000" placeholder="Details…"></textarea><div class="actions create-actions"><button class="primary icon-submit" id="newSave" aria-label="Create task" title="Create task"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></button></div>';
+      body.innerHTML = '<div class="create-fields"><input id="newTitle" aria-label="Task title" type="text" maxlength="140" autocomplete="off"><textarea id="newDesc" aria-label="Optional description" maxlength="5000"></textarea><div class="actions create-actions"><button class="primary icon-submit" id="newSave" aria-label="Create task" title="Create task"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></button></div></div>';
       let adding=false;
       const add = () => {
         if(adding)return;
@@ -1414,8 +1448,11 @@ body{color:var(--ink)!important}
         scroller.classList.toggle('no-scroll', !overflow);
         topFade.classList.toggle('show', !horizontal && overflow && scroller.scrollTop>3);
         bottomFade.classList.toggle('show', !horizontal && overflow && scroller.scrollTop+scroller.clientHeight<scroller.scrollHeight-3);
+        if(horizontal){scroller.classList.toggle('edge-left',overflow && scroller.scrollLeft>4);scroller.classList.toggle('edge-right',overflow && scroller.scrollLeft+scroller.clientWidth<scroller.scrollWidth-4);}
       });
     }
+
+    for(const id of ['heapContent','trashContent']) $(id).addEventListener('scroll',()=>syncAllFades(),{passive:true});
 
     function syncAllFades(){
       syncFades($('dayContent'), $('dayFadeTop'), $('dayFadeBottom'));

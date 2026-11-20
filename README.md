@@ -1,24 +1,17 @@
-# Emiliarity v1.6 — Minimal UI
+# Emiliarity v1.7
 
-A clean-up update preserving the app's task interactions, data model, and both Emilia Easter eggs.
+Minimal interface and input reliability refinement.
 
-## Changes
-- Looser heading/task letter spacing.
-- Twelve font-family choices in Settings, with platform fallback fonts for offline use.
-- Automatic / white / black text preference.
-- Minimal monochrome controls: black and white only, while the selected dynamic gradient remains the source of colour.
-- No grey sheet handle, no Done button, no extra task-creation title/field labels.
-- Task creation uses a compact title field, optional details field, and checkmark submit action; Enter in the title submits immediately.
-- No visible textarea resize grip.
-- Compact custom gradient pickers appear only while Custom atmosphere is selected.
-- No horizontal scroll fade on Todo or Heap.
-- Upper task columns occupy approximately 85% width so a portion of the next column remains visible.
-- Existing icons and Emilia illustrations unchanged.
+- Task taps now open reliably on Android touch and desktop mouse. The modal no longer closes from the same touch's delayed click; hold-to-complete is preserved.
+- Add Task uses one quiet rounded container with a smaller empty title field and a larger empty optional description field. No placeholder text; Enter in the title creates the task.
+- Settings and Add Task use a consistent deep black-and-white appearance, independently of the chosen background atmosphere.
+- Settings sliders use thinner neutral tracks and small round white thumbs.
+- Todo and Heap cards now soften at the actual scrolling edge when more content extends horizontally, rather than ending abruptly or applying a pane-wide fade.
+- The original Emilia illustrations and app icons are unchanged.
+- Task data and backup format remain compatible with earlier releases.
 
-## Installation
-1. Export a task backup in Settings.
-2. Upload all files from this folder to the root of the GitHub Pages repository, replacing the previous version.
-3. Commit and let Pages deploy.
-4. Refresh the site in Chrome and reopen Emiliarity.
+## Updating
 
-Fonts are backed by locally available platform typefaces. Some styles may look similar on Android devices lacking a particular family. No external font download is required for the app to work offline.
+1. Export a backup from the app in Settings.
+2. Copy the files from the `emiliarity` folder into your existing GitHub Pages repository root.
+3. Commit, let GitHub Pages deploy, then refresh the app.
