@@ -1,37 +1,25 @@
-# Emiliarity v0.4
+# Emiliarity v0.5
 
-Minimal liquid-glass weekly todo app for Android via GitHub Pages.
+Upload the **contents** of this folder into the root of your existing GitHub Pages repository. Keep your old URL and repo so local tasks stay on the same origin. Export a backup in Settings first.
 
-## What's new in v0.4
-- List scrolling now only appears when content actually overflows.
-- Top and bottom fade indicators appear when more tasks exist off-screen.
-- Task cards use a more colourful liquid-glass badge.
-- Task detail actions use icon buttons.
-- Task title and description can be edited directly by tapping into them once the task is opened.
-- Heap is darker and Rubble is darker still.
-- Vertical transitions now move between stacked panels instead of swapping views abruptly.
-- App icon updated to the new Emiliarity look.
+## Changes
+- Translucent clear-glass tasks without bubbles or drop shadows
+- Completion (hold or check) moves a task to a layered physical-looking Heap pile
+- Permanent deletion is separate and requires confirmation
+- Completed tasks can be restored by tapping them in Heap
+- Archive is for older recoverable deletions from previous builds only
+- Upward swipes can exit Heap and Archive even if the pile is scrollable
+- Expanded tasks open without the keyboard or redundant Task heading; tap text to edit
+- More energetic completion burst effect
+- Gradient colours can be customized or reset to default; slow background animation
+- Identical Emilia icon artwork in both PNG sizes and matching embedded-image SVG
 
-## Files to upload
-Upload these files to the root of your GitHub repository:
-- `index.html`
-- `manifest.webmanifest`
-- `sw.js`
-- `icon.svg`
-- `icon-192.png`
-- `icon-512.png`
-- `README.md`
-
-## Updating an existing live install
-1. Export a backup from the existing app first.
-2. Replace the files in your GitHub repo with the new ones.
-3. Commit the changes.
-4. Wait for GitHub Pages to redeploy.
-5. Open the live site once in Chrome.
-6. If the home-screen icon does not refresh, remove the installed shortcut/app and reinstall it from Chrome.
-7. Do not clear site data unless you have already exported a backup.
+## Update
+1. Open the old app: Heap → Settings → Export backup.
+2. Upload all seven files from this folder (not the folder itself) to the repository root and commit.
+3. Check Actions for GitHub Pages deployment.
+4. Reload the live page in Android Chrome. The installed version should update once its service worker refreshes.
+5. Do not clear site storage: that would erase locally saved tasks.
 
 ## Notes
-- Existing tasks should be preserved because the local storage key remains compatible.
-- The app is still a Progressive Web App, not an APK.
-- Sounds and haptics depend on Android/Chrome support.
+The pile uses deterministic overlapping positions and CSS drop animation, not a true physics engine. Real Android touch behavior and visual performance still need on-device testing.

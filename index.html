@@ -370,6 +370,35 @@
     @keyframes slideFromLeft{from{opacity:.35;transform:translateX(-18%)}to{opacity:1;transform:none}}
 
     .no-motion *{animation:none !important;transition:none !important}
+
+/* v0.5: clear glass, layered task heap and soft animated colour */
+.sky{animation:skyBreathe 28s ease-in-out infinite alternate}
+.sky::before{animation:float 27s ease-in-out infinite alternate}
+@keyframes skyBreathe{0%{filter:saturate(1.02) hue-rotate(-7deg);transform:scale(1)}50%{filter:saturate(1.12) hue-rotate(5deg);transform:scale(1.045) translateX(1%)}100%{filter:saturate(1.03) hue-rotate(-4deg);transform:scale(1.025) translateY(-1%)}}
+.task{background:linear-gradient(128deg,rgba(255,255,255,.10),rgba(255,255,255,.025) 54%,rgba(255,255,255,.075)),radial-gradient(circle at 10% 0%,rgba(255,195,226,.15),transparent 40%),radial-gradient(circle at 92% 100%,rgba(137,234,255,.14),transparent 35%);border-color:rgba(255,255,255,.35);box-shadow:inset 0 1px rgba(255,255,255,.55),inset 0 -1px rgba(255,255,255,.12);backdrop-filter:blur(9px) saturate(1.34);-webkit-backdrop-filter:blur(9px) saturate(1.34)}
+.task-badge{display:none}
+.task::after{content:"";position:absolute;pointer-events:none;inset:0;border-radius:inherit;background:linear-gradient(110deg,transparent 18%,rgba(255,255,255,.065) 42%,transparent 62%)}
+.task-name{position:relative;z-index:1}
+.pane-heap{background:linear-gradient(180deg,rgba(11,12,23,.16),rgba(5,8,17,.43))}
+.pane-trash{background:linear-gradient(180deg,rgba(3,5,10,.42),rgba(2,3,8,.73))}
+.fade{height:18px}
+.fade-top{background:linear-gradient(180deg,rgba(13,13,19,.19),transparent)}
+.fade-bottom{background:linear-gradient(0deg,rgba(13,13,19,.25),transparent)}
+.heap-pile{position:relative;min-height:100%;width:100%;padding-bottom:10px}
+.heap-slip{position:absolute;min-height:64px;width:var(--pile-width);left:var(--pile-left);top:var(--pile-top);z-index:var(--pile-z);transform:rotate(var(--pile-rot));animation:heapLand .5s cubic-bezier(.18,1.22,.35,1) both;animation-delay:var(--pile-delay);border-radius:20px;max-width:92%;padding:14px 16px;overflow-wrap:anywhere}
+.heap-slip:active{transform:rotate(var(--pile-rot)) scale(.99)}
+.heap-slip .task-name{font-size:15px}
+.heap-slip.completed{border-color:rgba(216,246,238,.49)}
+@keyframes heapLand{from{opacity:0;translate:0 -70px;scale:.97}to{opacity:1;translate:0 0;scale:1}}
+.task.disappear{animation:oomph .47s cubic-bezier(.18,.7,.2,1) forwards}
+@keyframes oomph{0%{opacity:1;transform:scale(1);filter:blur(0)}20%{opacity:1;transform:scale(.94)}43%{opacity:1;transform:scale(1.13);filter:brightness(1.7)}100%{opacity:0;transform:scale(.28) rotate(-12deg);filter:blur(12px)}}
+.task .spark{background:var(--spark-color,#fff);box-shadow:0 0 7px var(--spark-color,#fff)}
+.detail-title,.detail-desc{cursor:text}
+.sheet-header:has(h2:empty) h2{display:none}
+.sheet-header:has(h2:empty){margin-bottom:12px}
+.setting input[type=color]{width:56px;height:38px;padding:3px;border-radius:12px;border:1px solid #ffffff66;background:#ffffff25}
+.no-motion .sky{animation:none!important}
+
   </style>
 </head>
 <body>
@@ -377,7 +406,7 @@
   <main class="shell" id="shell">
     <div class="stage" id="stage">
       <section class="pane pane-trash">
-        <h1 class="heading">Rubble</h1>
+        <h1 class="heading">Archive</h1>
         <div class="content-wrap">
           <div class="fade fade-top" id="trashFadeTop"></div>
           <div class="fade fade-bottom" id="trashFadeBottom"></div>
@@ -431,10 +460,12 @@
     try { data = JSON.parse(localStorage.getItem(KEY)); } catch {}
     if (!data || !Array.isArray(data.tasks)) data = { tasks: [], trash: [], settings: {}, lastDate: todayKey() };
     data.trash = Array.isArray(data.trash) ? data.trash : [];
-    data.settings = Object.assign({ sound:true, haptics:true, dim:34, theme:'iridescent', motion:true }, data.settings);
+    data.settings = Object.assign({ sound:true, haptics:true, dim:34, theme:'iridescent', motion:true, colors:null }, data.settings);
     if (!['iridescent','moon','blue'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
     data.tasks = data.tasks.filter(t => t && typeof t.title === 'string' && t.title.trim() && (t.day === 'heap' || Number.isInteger(t.day) && t.day >= 0 && t.day < 7));
     data.trash = data.trash.filter(t => t && typeof t.title === 'string' && t.title.trim());
+    data.completed = Array.isArray(data.completed) ? data.completed : [];
+    data.completed = data.completed.filter(t => t && typeof t.title === 'string' && t.title.trim());
 
     let currentDay = today();
     let surface = 'day'; // day | heap | trash
@@ -478,11 +509,16 @@
         iridescent:['#f4bfd8','#9fe5f4','#d8bef6','#ffc4db','#958eb8','#746d99','#8183b1'],
         moon:['#7e75aa','#b7add4','#a381be','#9b8bbb','#625b8e','#463d68','#655987'],
         blue:['#8ec4dd','#74a7d7','#d6badf','#afc6e8','#52749a','#41567c','#6786af']
-      }[data.settings.theme];
-      const sky = $('sky');
-      sky.style.background = `radial-gradient(ellipse at 10% 18%,${palettes[0]} 0%,transparent 38%),radial-gradient(ellipse at 84% 18%,${palettes[1]} 0%,transparent 34%),radial-gradient(ellipse at 44% 63%,${palettes[2]} 0%,transparent 43%),radial-gradient(ellipse at 82% 76%,${palettes[3]} 0%,transparent 34%),linear-gradient(145deg,${palettes[4]},${palettes[5]} 50%,${palettes[6]})`;
-      document.documentElement.style.setProperty('--dim', (Math.max(0, Math.min(90, +data.settings.dim || 0))/100).toString());
-      document.body.classList.toggle('no-motion', !data.settings.motion);
+      };
+      const defaultPalette = palettes[data.settings.theme] || palettes.iridescent;
+      const userColors = data.settings.colors;
+      const validColor = c => typeof c === 'string' && /^#[0-9a-fA-F]{6}$/.test(c);
+      const colors = Array.isArray(userColors) && userColors.length === 3 && userColors.every(validColor)
+        ? [userColors[0],userColors[1],userColors[2],userColors[0],userColors[2],userColors[1],userColors[0]]
+        : defaultPalette;
+      $('sky').style.background = `radial-gradient(ellipse at 10% 18%,${colors[0]} 0%,transparent 38%),radial-gradient(ellipse at 84% 18%,${colors[1]} 0%,transparent 34%),radial-gradient(ellipse at 44% 63%,${colors[2]} 0%,transparent 43%),radial-gradient(ellipse at 82% 76%,${colors[3]} 0%,transparent 34%),linear-gradient(145deg,${colors[4]},${colors[5]} 50%,${colors[6]})`;
+      document.documentElement.style.setProperty('--dim',(Math.max(0,Math.min(90,+data.settings.dim||0))/100).toString());
+      document.body.classList.toggle('no-motion',!data.settings.motion);
     }
 
     function vibration(kind){
@@ -551,11 +587,13 @@
       item.setAttribute('role','button');
       item.setAttribute('aria-label', `${task.title}. Tap for details, hold to complete.`);
       item.style.animationDelay = Math.min(140, i*22) + 'ms';
-      item.innerHTML = '<span class="progress"></span><span class="task-badge" aria-hidden="true"></span><span class="task-name"></span>';
+      item.innerHTML = '<span class="progress"></span><span class="task-name"></span>';
       item.querySelector('.task-name').textContent = task.title;
-      taskHold(item, task.id);
+      if (task.isCompleted) {
+        item.addEventListener('click',()=>openCompleted(task.id));
+      } else taskHold(item, task.id);
       item.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTask(task.id); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (task.isCompleted ? openCompleted(task.id) : openTask(task.id)); }
       });
       return item;
     }
@@ -571,7 +609,7 @@
       const pile = document.createElement('div');
       pile.className = 'trash-pile';
       const items = data.trash.slice(0,80);
-      pile.style.height = Math.max(520, Math.ceil(Math.min(items.length,80)/4)*96 + 360) + 'px';
+      pile.style.height = Math.max(0, items.length * 72 + 115) + 'px';
       items.forEach((t, i) => {
         const p = document.createElement('button');
         p.className = 'paper';
@@ -592,8 +630,32 @@
     }
 
     function renderHeap(){
-      renderTaskList($('heapList'), data.tasks.filter(t => t.day === 'heap'));
-      syncFades($('heapContent'), $('heapFadeTop'), $('heapFadeBottom'));
+      const list = $('heapList');
+      list.innerHTML = '';
+      const pile = document.createElement('div');
+      pile.className = 'heap-pile';
+      const pending = data.tasks.filter(t => t.day === 'heap').map(t => ({...t, isCompleted:false}));
+      const complete = data.completed.map(t => ({...t, isCompleted:true}));
+      const all = [...pending, ...complete].sort((a,b) => (a.completedAt||a.createdAt||0)-(b.completedAt||b.createdAt||0));
+      const maxHeight = Math.max(0, all.length*34+110);
+      pile.style.height = maxHeight+'px';
+      all.forEach((t,i) => {
+        const item = taskCard(t,i);
+        item.classList.add('heap-slip');
+        if (t.isCompleted) item.classList.add('completed');
+        const row = Math.floor(i/4);
+        const col = i%4;
+        const seed = (i * 43 + 17) % 100;
+        item.style.setProperty('--pile-width',`${72+((i*7)%17)}%`);
+        item.style.setProperty('--pile-left',`${4 + (col*9 + seed%13)%22}%`);
+        item.style.setProperty('--pile-top',`${9 + row*114 + col*22}px`);
+        item.style.setProperty('--pile-rot',`${((i*19)%19)-9}deg`);
+        item.style.setProperty('--pile-z',i+1);
+        item.style.setProperty('--pile-delay',`${Math.min(i*22,180)}ms`);
+        pile.append(item);
+      });
+      list.append(pile);
+      syncFades($('heapContent'),$('heapFadeTop'),$('heapFadeBottom'));
     }
 
     function renderDay(){
@@ -617,26 +679,39 @@
     function finish(id, el){
       const index = data.tasks.findIndex(t => t.id === id);
       if (index < 0) return;
-      const t = data.tasks.splice(index, 1)[0];
-      t.deletedAt = Date.now();
-      data.trash.unshift(t);
-      data.trash = data.trash.slice(0,80);
+      const t = data.tasks.splice(index,1)[0];
+      t.completedAt = Date.now();
+      data.completed.push(t);
       save();
       feedback('finish');
       closeSheet();
-      if (el && el.isConnected && data.settings.motion && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if(el && el.isConnected && data.settings.motion && !matchMedia('(prefers-reduced-motion: reduce)').matches){
         el.classList.remove('holding');
         el.classList.add('disappear');
-        for (let i=0;i<11;i++){
-          const p = document.createElement('span');
-          p.className = 'spark';
-          p.style.cssText = `--x:${10+Math.random()*80}%;--y:${10+Math.random()*80}%;--size:${2+Math.random()*5}px;--dx:${(Math.random()-.5)*150}px;--dy:${(Math.random()-.5)*130}px`;
+        for(let i=0;i<22;i++){
+          const p=document.createElement('span');p.className='spark';
+          p.style.cssText=`--x:${15+Math.random()*70}%;--y:${15+Math.random()*70}%;--size:${2+Math.random()*7}px;--dx:${(Math.random()-.5)*260}px;--dy:${(Math.random()-.5)*280}px;--spark-color:${['#fff','#e7b7f5','#8ce8ed','#ffc9df'][i%4]}`;
           el.append(p);
         }
-        setTimeout(() => { render(); toast('Completed'); }, 430);
-      } else {
-        render(); toast('Completed');
-      }
+        setTimeout(()=>{render();toast('Completed · added to Heap')},470);
+      } else {render();toast('Completed · added to Heap')}
+    }
+    function deleteForever(id,completed=false){
+      if(!confirm('Delete this task permanently? This cannot be undone.')) return;
+      const arr=completed?data.completed:data.tasks;
+      const idx=arr.findIndex(t=>t.id===id);
+      if(idx<0)return;
+      arr.splice(idx,1);save();feedback('finish');closeSheet();render();toast('Permanently deleted');
+    }
+    function openCompleted(id){
+      const task=data.completed.find(t=>t.id===id);
+      if(!task)return;
+      const {body}=sheet('');
+      body.innerHTML='<div class="description" id="doneTitle" style="font-size:24px;font-weight:550;margin-bottom:12px"></div><div class="description" id="doneDesc"></div><div class="icon-actions"><button class="icon-btn" id="undoComplete" aria-label="Restore to original day" title="Restore"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-2"/></svg></button><button class="icon-btn danger" id="deleteCompleted" aria-label="Delete permanently" title="Delete permanently"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg></button></div>';
+      $('doneTitle').textContent=task.title;
+      $('doneDesc').textContent=task.description||'';
+      $('undoComplete').onclick=()=>{const idx=data.completed.findIndex(t=>t.id===id);if(idx<0)return;const item=data.completed.splice(idx,1)[0];delete item.completedAt;data.tasks.push(item);save();feedback();closeSheet();render();toast('Restored')};
+      $('deleteCompleted').onclick=()=>deleteForever(id,true);
     }
 
     function restore(id){
@@ -739,7 +814,7 @@
       const t = data.tasks.find(x => x.id === id);
       if (!t) return;
       feedback();
-      const { body } = sheet('Task');
+      const { body } = sheet('');
       body.innerHTML = `
         <input id="detailTitle" class="detail-title" type="text" maxlength="140" placeholder="Task title">
         <textarea id="detailDesc" class="detail-desc" maxlength="5000" placeholder="Description"></textarea>
@@ -750,8 +825,11 @@
           <button class="icon-btn" id="choose" aria-label="Move to another day" title="Move to">
             <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 10h18"></path></svg>
           </button>
-          <button class="icon-btn danger" id="complete" aria-label="Complete and move to rubble" title="Complete">
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12"></path><path d="M18 6 6 18"></path></svg>
+          <button class="icon-btn" id="complete" aria-label="Complete and move to Heap" title="Complete">
+            <svg viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"></path></svg>
+          </button>
+          <button class="icon-btn danger" id="deleteTask" aria-label="Delete permanently" title="Delete permanently">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7m4-7v7"></path></svg>
           </button>
         </div>
         <div class="choices" id="choices" hidden></div>
@@ -777,11 +855,13 @@
       $('tomorrow').onclick = () => { commit(); t.day = (Number.isInteger(t.day) ? t.day + 1 : today() + 1) % 7; save(); feedback(); closeSheet(); render(); toast('Moved to ' + DAYS[t.day]); };
       $('choose').onclick = () => { commit(); dayChoices(t); };
       $('complete').onclick = () => { commit(); finish(id); };
-      focusInput(titleEl);
+      $('deleteTask').onclick = () => { commit(); deleteForever(id); };
+      // Do not focus an editor unless the user explicitly taps it.
+
     }
 
     function exportBackup(){
-      const blob = new Blob([JSON.stringify({app:'emiliarity',version:4,exportedAt:new Date().toISOString(),tasks:data.tasks,trash:data.trash,settings:data.settings,lastDate:data.lastDate},null,2)], {type:'application/json'});
+      const blob = new Blob([JSON.stringify({app:'emiliarity',version:5,exportedAt:new Date().toISOString(),tasks:data.tasks,trash:data.trash,completed:data.completed,settings:data.settings,lastDate:data.lastDate},null,2)], {type:'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -805,6 +885,7 @@
           const clean = t => ({id:String(t.id || makeId()), title:t.title.slice(0,140), description:String(t.description || '').slice(0,5000), day:t.day, createdAt:t.createdAt || Date.now(), ...(t.deletedAt ? {deletedAt:t.deletedAt} : {})});
           data.tasks = obj.tasks.filter(valid).map(clean);
           data.trash = obj.trash.filter(valid).slice(0,80).map(clean);
+          data.completed = Array.isArray(obj.completed) ? obj.completed.filter(valid).map(t=>({...clean(t),completedAt:t.completedAt||Date.now()})) : [];
           data.lastDate = fromKey(obj.lastDate) ? obj.lastDate : todayKey();
           if (obj.settings && typeof obj.settings === 'object') data.settings = Object.assign(data.settings, obj.settings);
           save(); rollover(); closeSheet(); currentDay = today(); surface = 'day'; render(); toast('Backup restored');
@@ -817,8 +898,11 @@
 
     function openSettings(){
       const { body } = sheet('Settings');
-      body.innerHTML = '<label>Atmosphere</label><div class="themes"><button data-color="iridescent">Iridescent</button><button data-color="moon">Moon</button><button data-color="blue">Blue</button></div><div class="setting"><span>Darken background</span><input type="range" min="0" max="90" id="dim"></div><div class="setting"><span>Sounds</span><input id="sound" type="checkbox"></div><div class="setting"><span>Haptics</span><input id="haptics" type="checkbox"></div><div class="setting"><span>Motion</span><input id="motion" type="checkbox"></div><div class="actions"><button id="backup">Export backup</button><button id="restoreBackup">Import backup</button><input id="importFile" type="file" accept=".json,application/json" hidden></div><p class="note">Hold empty space to add. Tap a task to open it, then tap the title or description to edit directly. Hold a task to complete it. Swipe sideways between days, pull down for Heap, then down again for Rubble. Pull upward from the top to go back down. Tasks are stored on this device, so export backups occasionally.</p><div class="actions"><button id="done" class="primary">Done</button></div>';
+      body.innerHTML = '<label>Atmosphere</label><div class="themes"><button data-color="iridescent">Iridescent</button><button data-color="moon">Moon</button><button data-color="blue">Blue</button></div><label>Custom gradient colours</label><div class="setting"><span>Blush</span><input id="colorA" type="color" value="#f4bfd8"></div><div class="setting"><span>Sky</span><input id="colorB" type="color" value="#9fe5f4"></div><div class="setting"><span>Lavender</span><input id="colorC" type="color" value="#d8bef6"></div><div class="actions"><button id="resetBackground">Reset to default</button></div><div class="setting"><span>Darken background</span><input type="range" min="0" max="90" id="dim"></div><div class="setting"><span>Sounds</span><input id="sound" type="checkbox"></div><div class="setting"><span>Haptics</span><input id="haptics" type="checkbox"></div><div class="setting"><span>Motion</span><input id="motion" type="checkbox"></div><div class="actions"><button id="backup">Export backup</button><button id="restoreBackup">Import backup</button><input id="importFile" type="file" accept=".json,application/json" hidden></div><p class="note">Hold empty space to add. Tap a task for details and tap the title or description to edit. Hold a task to complete it into Heap, or choose permanent deletion. Swipe down for Heap, again for the legacy Archive. Swipe upward anywhere on the pile to return. Tasks are stored on this device, so export backups occasionally.</p><div class="actions"><button id="done" class="primary">Done</button></div>';
       $('dim').value = data.settings.dim;
+      const custom = data.settings.colors || ['#f4bfd8','#9fe5f4','#d8bef6'];
+      ['colorA','colorB','colorC'].forEach((id,i)=>{$(id).value=custom[i];$(id).oninput=()=>{data.settings.colors=[$('colorA').value,$('colorB').value,$('colorC').value];save();theme()}});
+      $('resetBackground').onclick=()=>{data.settings.colors=null;data.settings.theme='iridescent';data.settings.dim=34;save();closeSheet();theme();openSettings();toast('Default restored')};
       for (const k of ['sound','haptics','motion']) $(k).checked = !!data.settings[k];
       $('dim').oninput = e => { data.settings.dim = +e.target.value; save(); theme(); };
       for (const k of ['sound','haptics','motion']) $(k).onchange = e => { data.settings[k] = e.target.checked; save(); theme(); };
@@ -826,6 +910,7 @@
         b.classList.toggle('selected', b.dataset.color === data.settings.theme);
         b.onclick = () => {
           data.settings.theme = b.dataset.color;
+          data.settings.colors = null;
           save(); theme();
           body.querySelectorAll('[data-color]').forEach(x => x.classList.toggle('selected', x === b));
           feedback();
@@ -899,7 +984,9 @@
       if (!gesture) return;
       const p = e.touches[0];
       if (Math.abs(p.clientY - gesture.y) > 14 || Math.abs(p.clientX - gesture.x) > 14) clearBlank();
-    }, {passive:true});
+      const dy=p.clientY-gesture.y,dx=p.clientX-gesture.x;
+      if(dy < -28 && Math.abs(dy)>Math.abs(dx)*1.2 && (surface==='heap'||surface==='trash') && e.cancelable)e.preventDefault();
+    }, {passive:false});
 
     shell.addEventListener('touchend', e => {
       if (!gesture || modal) return;
@@ -911,7 +998,7 @@
       const atTop = (scroller?.scrollTop || 0) < 6;
       if (surface === 'day' && absX > 55 && absX > absY * 1.2) {
         moveDay(currentDay + (dx < 0 ? 1 : -1), dx < 0 ? 'left' : 'right');
-      } else if (absY > 70 && absY > absX * 1.2 && atTop) {
+      } else if (absY > 70 && absY > absX * 1.2 && (dy < 0 || atTop)) {
         if (dy > 0) {
           if (surface === 'day') moveVertical('heap');
           else if (surface === 'heap') moveVertical('trash');
