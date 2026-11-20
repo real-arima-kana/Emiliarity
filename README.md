@@ -1,27 +1,30 @@
-# Emiliarity v0.7
+# Emiliarity v0.8
 
-A minimalist, touch-first, offline-friendly weekly task app for Android (GitHub Pages PWA).
+A minimal Android progressive web app for a seven-day to-do cycle.
 
-## Changes in this version
-- All three Emilia app icon files are unchanged from v0.6.
-- Clear, transparent task surfaces (no frosted-glass blur) and safer margins/animations.
-- Heap cards form a compact contained stack, instead of overflowing the sides.
-- Settings and add-task surfaces use the default iridescent atmosphere rather than the older Moon colours.
-- New simple dark and simple light atmospheres, alongside Iridescent, Moon and Blue.
-- Three native colour-wheel pickers for custom gradient colours.
-- Import a custom background image from your device, with a translucency slider for the gradient layer above it and a reset option.
-- A small Easter egg appears while you drag from the bottom edge of the weekday screen and hold, and recedes when you release.
+## What's new
 
-## Update your live app
-1. Export a backup from Settings in the current app.
-2. Extract this ZIP and upload all the files INSIDE the `emiliarity` folder to the ROOT of your existing GitHub Pages repository.
-3. Commit the files; keep Pages on `main` + `/(root)`.
-4. Once it deploys, refresh the live URL in Chrome, then reopen the installed Emiliarity app.
-5. If icons are cached, try closing and reopening the installed app. Avoid clearing site data without a backup.
+- Press and hold a task to make it quiver, swell, and burst into particles on completion. This replaces the straight-line hold-progress fill.
+- Todo (general unscheduled tasks) and Heap (completed tasks) now fill each column from top to bottom before continuing in a new column to the right. Swipe sideways to browse additional columns.
+- The Easter egg only activates on a weekday when its task list **does not overflow**: start near the bottom of the screen and drag upward while holding. The whole app surface lifts to reveal a compact, transparent line-art portrait; release to close it.
+- The separate Emilia artwork used in the Easter egg is `emilia-peek.png`. It does **not** replace or modify any installed app icons.
 
-## Important
-- Data is stored in your browser's local storage. This build keeps the existing `drift-v1` storage key to preserve tasks across versions.
-- Uploaded background images are compressed and stored locally; they are not uploaded to GitHub or a server. Browser storage limits apply.
-- Long-press haptics and gesture behavior depend on device/browser support.
-- The Easter egg uses the existing 512px Emilia icon asset, not a modified icon.
-- Browser interactions must be tested on your actual Android device.
+## Updating from v0.7
+
+1. Back up existing tasks using Todo → Settings → Export backup.
+2. Extract the ZIP and upload all files inside the `emiliarity` folder to the **root** of your existing GitHub repository.
+3. Commit the file changes and let GitHub Pages deploy.
+4. Reopen the installed app. If it still serves a cached page, open its live GitHub Pages address in Chrome and reload.
+5. Avoid clearing site storage because that can erase local tasks.
+
+## Included files
+
+`index.html`, `manifest.webmanifest`, `sw.js`, `icon.svg`, `icon-192.png`, `icon-512.png`, `emilia-peek.png`, and `README.md`.
+
+The three app icon files are unchanged from v0.7. The new portrait has transparency; it is used only for the Easter egg.
+
+Task data remains under the existing `drift-v1` local storage key for compatibility.
+
+## Test notes
+
+The JavaScript passed syntax checking, but this environment blocked the local browser smoke test. Check touch behavior, column scrolling, and the bottom-edge Easter egg on your Android phone.

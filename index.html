@@ -218,7 +218,7 @@
     }
     .task-name{font-size:16px;font-weight:510;line-height:1.42;overflow-wrap:anywhere;pointer-events:none}
     .progress{position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.32),rgba(255,255,255,.08));transform:scaleX(0);transform-origin:left;pointer-events:none}
-    .task.holding .progress{animation:holdfill .64s linear forwards}
+    .task.holding .progress{display:none}
     .task.disappear{animation:pop .42s cubic-bezier(.3,.8,.2,1) forwards}
     .task .spark{position:absolute;width:var(--size);height:var(--size);left:var(--x);top:var(--y);background:#fff;border-radius:50%;pointer-events:none;animation:spark .46s ease-out forwards}
 
@@ -480,6 +480,29 @@
 .bg-photo{z-index:0}
 .no-motion .peek{transition:none!important}
 
+
+/* v0.8: horizontal column lists, bubble pop, and lift-to-reveal art */
+.content.column-scroller{overflow-x:auto!important;overflow-y:hidden!important;touch-action:pan-x;overscroll-behavior-x:contain;scroll-snap-type:x:proximity;padding-bottom:6px;}
+.content.column-scroller.no-scroll{overflow-x:hidden!important;}
+.column-list{display:grid!important;grid-auto-flow:column;grid-auto-columns:calc(100% - 2px);align-content:start;justify-content:start;gap:10px 12px;min-height:0!important;width:100%;padding:4px 0 6px;}
+.column-list .task{min-height:0;height:68px;max-width:100%;border-radius:25px;scroll-snap-align:start;}
+.column-list .task-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
+.column-list .completed-card{background:linear-gradient(135deg,rgba(247,197,234,.16),rgba(169,211,254,.09))!important;}
+.fade-x{top:0!important;bottom:0!important;width:20px!important;height:100%!important;right:0!important;left:auto!important;background:linear-gradient(270deg,rgba(24,18,42,.22),transparent)!important;}
+.fade-x.fade-top{left:0!important;right:auto!important;background:linear-gradient(90deg,rgba(24,18,42,.20),transparent)!important;}
+.task.holding{animation:bubbleTremble .12s ease-in-out infinite alternate!important;transform-origin:center;}
+.task.holding::after{content:"";display:block;position:absolute;inset:-3px;border:1px solid rgba(255,242,255,.7);border-radius:inherit;pointer-events:none;animation:holdAura .64s linear forwards;}
+.task.disappear{animation:bubbleBurst .46s cubic-bezier(.15,.8,.3,1) both!important;}
+@keyframes bubbleTremble{0%{transform:translateX(-1.3px) rotate(-.3deg) scale(1.005)}100%{transform:translateX(1.5px) rotate(.35deg) scale(1.05)}}
+@keyframes holdAura{0%{opacity:0;transform:scale(.99)}100%{opacity:.95;transform:scale(1.035)}}
+@keyframes bubbleBurst{0%{opacity:1;transform:scale(1)}20%{transform:scale(1.11)}42%{transform:scale(1.17)}53%{opacity:.9;transform:scale(1.2)}100%{opacity:0;transform:scale(.67);filter:blur(10px)}}
+.shell{z-index:3;transition:transform .25s cubic-bezier(.24,.87,.34,1);}
+.shell.easter-lift{transform:translateY(var(--peek-lift,-145px));border-radius:0 0 23px 23px;box-shadow:0 16px 40px rgba(25,15,46,.30);}
+.peek{z-index:2!important;bottom:0!important;left:50%!important;width:min(55vw,238px)!important;height:182px!important;transform:translateX(-50%)!important;opacity:0;transition:opacity .24s ease!important;overflow:hidden;filter:none!important;}
+.peek.active{opacity:1;transform:translateX(-50%)!important;}
+.peek img{height:auto!important;width:100%!important;object-fit:contain!important;object-position:center top!important;border-radius:0!important;mask-image:none!important;-webkit-mask-image:none!important;}
+.no-motion .shell{transition:none!important}
+
   </style>
 </head>
 <body>
@@ -519,7 +542,7 @@
     </div>
   </main>
   <div class="toast" id="toast" aria-live="polite"></div>
-  <div class="peek" id="peek"><img src="./icon-512.png" alt=""></div>
+  <div class="peek" id="peek"><img src="./emilia-peek.png" alt="" draggable="false"></div>
 
   <script>
   (() => {
@@ -688,10 +711,10 @@
       item.innerHTML = '<span class="progress"></span><span class="task-name"></span>';
       item.querySelector('.task-name').textContent = task.title;
       if (task.isCompleted) {
-        item.addEventListener('click',()=>openCompleted(task.id));
+        item.addEventListener('click',()=>task.isLegacy?restore(task.id):openCompleted(task.id));
       } else taskHold(item, task.id);
       item.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (task.isCompleted ? openCompleted(task.id) : openTask(task.id)); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (task.isLegacy ? restore(task.id) : task.isCompleted ? openCompleted(task.id) : openTask(task.id)); }
       });
       return item;
     }
@@ -701,41 +724,33 @@
       tasks.forEach((t, i) => target.append(taskCard(t, i)));
     }
 
-    function renderTrash(){
-      const list=$('trashList');list.innerHTML='';
-      const items=[
-        ...data.trash.map(t=>({...t,legacy:true,at:t.deletedAt||t.createdAt||0})),
-        ...data.completed.map(t=>({...t,legacy:false,at:t.completedAt||t.createdAt||0}))
-      ].sort((a,b)=>a.at-b.at);
-      const pile=document.createElement('div');pile.className='rubble-mound';
-      const rows=Math.ceil(items.length/4);
-      pile.style.height=Math.max(340,rows*86+200)+'px';
-      items.forEach((t,i)=>{
-        const row=Math.floor(i/4),col=i%4;
-        const item=document.createElement('button');
-        item.className='rubble-card';
-        const seed=(i*29+17)%53;
-        const width=44+(i%3)*3;
-        const spread=[4,19,35,49][col];
-        const left=Math.max(2,Math.min(98-width,spread+(seed%9-4)));
-        item.style.setProperty('--rubble-left',`${left}%`);
-        item.style.setProperty('--rubble-width',`${width}%`);
-        item.style.setProperty('--rubble-top',`${Math.max(10,190-row*3)+row*82+seed%18}px`);
-        item.style.setProperty('--rubble-rot',`${(i*31%23)-11}deg`);
-        item.style.setProperty('--rubble-z',i+1);
-        item.style.setProperty('--rubble-delay',`${Math.min(180,i*12)}ms`);
-        item.textContent=t.title;
-        item.title=t.legacy?'Restore old task':'Restore completed task';
-        item.onclick=()=>t.legacy?restore(t.id):openCompleted(t.id);
-        pile.append(item);
-      });
-      list.append(pile);
-      syncFades($('trashContent'),$('trashFadeTop'),$('trashFadeBottom'));
+    // Upper panels fill vertically first, then add a horizontally scrollable column.
+    function columnRows(scroller){
+      return Math.max(1, Math.floor((scroller.clientHeight - 18) / 78));
     }
-
+    function renderColumns(scroller, list, tasks, kind){
+      list.innerHTML='';
+      list.className='content-list column-list';
+      list.style.gridTemplateRows=`repeat(${columnRows(scroller)}, 68px)`;
+      tasks.forEach((task,i)=>{
+        const card=taskCard(task,i);
+        if(kind==='completed'){
+          card.classList.add('completed-card');
+          // taskCard uses isCompleted to open the completed-task controls.
+        }
+        list.append(card);
+      });
+      requestAnimationFrame(syncAllFades);
+    }
+    function renderTrash(){
+      const completed=[...data.completed].reverse().map(t=>({...t,isCompleted:true}));
+      const legacy=[...data.trash].reverse().map(t=>({...t,isCompleted:true,isLegacy:true}));
+      const all=[...completed,...legacy];
+      const scroller=$('trashContent');
+      renderColumns(scroller,$('trashList'),all,'completed');
+    }
     function renderHeap(){
-      renderTaskList($('heapList'),data.tasks.filter(t=>t.day==='heap'));
-      syncFades($('heapContent'),$('heapFadeTop'),$('heapFadeBottom'));
+      renderColumns($('heapContent'),$('heapList'),data.tasks.filter(t=>t.day==='heap'),'todo');
     }
 
     function renderDay(){
@@ -1067,10 +1082,11 @@
     function syncFades(scroller, topFade, bottomFade){
       requestAnimationFrame(() => {
         if (!scroller) return;
-        const overflow = scroller.scrollHeight > scroller.clientHeight + 2;
+        const horizontal=scroller.classList.contains('column-scroller');
+        const overflow = horizontal ? scroller.scrollWidth > scroller.clientWidth+2 : scroller.scrollHeight > scroller.clientHeight+2;
         scroller.classList.toggle('no-scroll', !overflow);
-        topFade.classList.toggle('show', overflow && scroller.scrollTop > 3);
-        bottomFade.classList.toggle('show', overflow && scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 3);
+        topFade.classList.toggle('show', overflow && (horizontal ? scroller.scrollLeft>3 : scroller.scrollTop>3));
+        bottomFade.classList.toggle('show', overflow && (horizontal ? scroller.scrollLeft+scroller.clientWidth<scroller.scrollWidth-3 : scroller.scrollTop+scroller.clientHeight<scroller.scrollHeight-3));
       });
     }
 
@@ -1083,6 +1099,7 @@
     ['dayContent','heapContent','trashContent'].forEach((id, i) => {
       const scroller = $(id);
       const pairs = [[$('dayFadeTop'),$('dayFadeBottom')],[$('heapFadeTop'),$('heapFadeBottom')],[$('trashFadeTop'),$('trashFadeBottom')]][i];
+      if(i){scroller.classList.add('column-scroller');pairs[0].classList.add('fade-x');pairs[1].classList.add('fade-x');}
       scroller.addEventListener('scroll', () => syncFades(scroller, pairs[0], pairs[1]), {passive:true});
       scroller.addEventListener('contextmenu', e => e.preventDefault());
       scroller.addEventListener('selectstart', e => {
@@ -1127,8 +1144,14 @@
       const p = e.touches[0];
       if (Math.abs(p.clientY - gesture.y) > 14 || Math.abs(p.clientX - gesture.x) > 14) clearBlank();
       const dy=p.clientY-gesture.y,dx=p.clientX-gesture.x;
-      if(gesture.bottomEdge && surface==='day' && Math.abs(dy)>35 && Math.abs(dx)<75){
-        gesture.peeking=true;$('peek').classList.add('active');
+      const dayScroll=$('dayContent');
+      const canPeek=gesture.bottomEdge && surface==='day' && dayScroll.scrollHeight<=dayScroll.clientHeight+2;
+      if(canPeek && dy < -28 && Math.abs(dx)<70){
+        gesture.peeking=true;
+        const lift=Math.min(168,Math.max(65,-dy*.8));
+        shell.style.setProperty('--peek-lift',`-${lift}px`);
+        shell.classList.add('easter-lift');
+        $('peek').classList.add('active');
         if(e.cancelable)e.preventDefault();return;
       }
       if(dy < -28 && Math.abs(dy)>Math.abs(dx)*1.2 && (surface==='heap'||surface==='trash') && e.cancelable)e.preventDefault();
@@ -1136,7 +1159,7 @@
 
     shell.addEventListener('touchend', e => {
       if (!gesture || modal) return;
-      if(gesture.peeking){$('peek').classList.remove('active');gesture=null;return;}
+      if(gesture.peeking){$('peek').classList.remove('active');shell.classList.remove('easter-lift');gesture=null;return;}
       const p = e.changedTouches[0];
       const dx = p.clientX - gesture.x;
       const dy = p.clientY - gesture.y;
@@ -1157,7 +1180,7 @@
       gesture = null;
     }, {passive:true});
 
-    shell.addEventListener('touchcancel', () => { $('peek').classList.remove('active');gesture = null; clearBlank(); });
+    shell.addEventListener('touchcancel', () => { $('peek').classList.remove('active');shell.classList.remove('easter-lift');gesture = null; clearBlank(); });
 
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') closeSheet();
@@ -1172,7 +1195,7 @@
     });
 
     document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
-    window.addEventListener('resize', syncAllFades);
+    window.addEventListener('resize', () => {renderHeap();renderTrash();syncAllFades();});
     setInterval(() => { if (!document.hidden && todayKey() !== data.lastDate) render(); }, 60000);
 
     render();
