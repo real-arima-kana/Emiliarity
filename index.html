@@ -534,6 +534,42 @@
 .top-peek img{display:block;width:100%;max-height:100%;object-fit:contain;object-position:center bottom}
 .shell.easter-drop{transform:translateY(var(--top-peek-drop,130px));border-radius:22px 22px 0 0;box-shadow:0 -12px 30px rgba(29,14,45,.14)}
 .no-motion .top-peek{transition:none!important}
+
+/* v1.1: physical reveal, fast interactions, fully unclipped round pop */
+.peek, .top-peek{
+  position:fixed!important;left:50%!important;pointer-events:none!important;
+  opacity:1!important;transition:none!important;z-index:2!important;
+  transform:translateX(-50%)!important;filter:none!important;overflow:visible!important;
+}
+.peek{top:auto!important;bottom:0!important;width:min(78vw,320px)!important;height:min(45vh,245px)!important}
+.peek img{height:100%!important;width:100%!important;object-fit:contain!important;object-position:center bottom!important;mask:none!important;-webkit-mask:none!important}
+.top-peek{top:0!important;bottom:auto!important;width:min(95vw,560px)!important;height:min(32vh,225px)!important}
+.top-peek img{height:100%!important;width:100%!important;object-fit:contain!important;object-position:center top!important}
+.shell{transition:transform .22s cubic-bezier(.18,.86,.22,1)!important;box-shadow:none!important;will-change:transform}
+.shell.easter-lift,.shell.easter-drop{box-shadow:none!important}
+.stage{transition-duration:.35s!important}
+.content.column-scroller{scroll-behavior:auto!important;scroll-snap-type:none!important;-webkit-overflow-scrolling:touch}
+.column-list .task{scroll-snap-align:none!important}
+.task.holding{animation:bubbleTremble .085s ease-in-out infinite alternate!important}
+.task.holding::after{animation:none!important;opacity:0!important}
+.task.disappear{animation:none!important}
+.bubble-ghost{
+  position:fixed!important;z-index:200!important;pointer-events:none!important;
+  margin:0!important;overflow:visible!important;isolation:isolate!important;
+  clip-path:inset(0 round 999px)!important;border-radius:999px!important;
+  animation:quickBubblePop .31s cubic-bezier(.16,.86,.3,1) both!important;
+  transform-origin:center!important;will-change:transform,opacity;
+}
+.pop-particle{
+  position:fixed;z-index:201;pointer-events:none;width:var(--size);height:var(--size);
+  border-radius:50%;background:var(--spark-color);box-shadow:0 0 7px var(--spark-color);
+  animation:particleFlight .38s cubic-bezier(.12,.7,.25,1) forwards;
+  will-change:transform,opacity;
+}
+@keyframes quickBubblePop{0%{opacity:1;transform:scale(1)}35%{opacity:1;transform:scale(1.08)}62%{opacity:.75;transform:scale(1.16)}100%{opacity:0;transform:scale(.2)}}
+@keyframes particleFlight{0%{opacity:1;transform:scale(.9)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.15)}}
+.no-motion .bubble-ghost,.no-motion .pop-particle{animation:none!important;opacity:0}
+
   </style>
 </head>
 <body>
@@ -746,6 +782,7 @@
       const oldPane=pane.cloneNode(true);
       oldPane.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
       oldPane.classList.add('day-pane-ghost');
+      oldPane.querySelectorAll('.task').forEach(t=>{t.style.animation='none';});
       oldPane.querySelectorAll('[tabindex]').forEach(el=>el.removeAttribute('tabindex'));
       $('shell').append(oldPane);
       currentDay=((to%7)+7)%7;
@@ -756,7 +793,7 @@
       const x=direction==='left'?-1:1;
       const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches||!data.settings.motion;
       if(reduce){oldPane.remove();return;}
-      const opts={duration:430,easing:'cubic-bezier(.22,.86,.25,1)',fill:'both'};
+      const opts={duration:305,easing:'cubic-bezier(.22,.86,.25,1)',fill:'both'};
       const exit=oldPane.animate([{transform:'translateX(0)',opacity:1},{transform:`translateX(${x*100}%)`,opacity:.58}],opts);
       pane.animate([{transform:`translateX(${-x*100}%)`,opacity:.58},{transform:'translateX(0)',opacity:1}],opts);
       exit.onfinish=()=>oldPane.remove();
@@ -769,7 +806,7 @@
       item.tabIndex = 0;
       item.setAttribute('role','button');
       item.setAttribute('aria-label', `${task.title}. Tap for details, hold to complete.`);
-      item.style.animationDelay = Math.min(140, i*22) + 'ms';
+      item.style.animationDelay = Math.min(70, i*12) + 'ms';
       item.innerHTML = '<span class="progress"></span><span class="task-name"></span>';
       item.querySelector('.task-name').textContent = task.title;
       if (task.isCompleted) {
@@ -835,31 +872,34 @@
     }
 
     function finish(id, el){
-      const index = data.tasks.findIndex(t => t.id === id);
-      if (index < 0) return;
-      const t = data.tasks.splice(index,1)[0];
-      t.completedAt = Date.now();
-      data.completed.push(t);
-      save();
-      feedback('finish');
-      closeSheet();
-      if(el && el.isConnected && data.settings.motion && !matchMedia('(prefers-reduced-motion: reduce)').matches){
-        el.classList.remove('holding');
-        el.classList.add('disappear');
-        for(let i=0;i<22;i++){
-          const p=document.createElement('span');p.className='spark';
-          p.style.cssText=`--x:${15+Math.random()*70}%;--y:${15+Math.random()*70}%;--size:${2+Math.random()*7}px;--dx:${(Math.random()-.5)*260}px;--dy:${(Math.random()-.5)*280}px;--spark-color:${['#fff','#e7b7f5','#8ce8ed','#ffc9df'][i%4]}`;
-          const rect=el.getBoundingClientRect();
-          p.style.position='fixed';
-          p.style.left=(rect.left+rect.width*(.15+Math.random()*.7))+'px';
-          p.style.top=(rect.top+rect.height*(.15+Math.random()*.7))+'px';
-          p.style.zIndex='150';
-          p.style.pointerEvents='none';
-          document.body.append(p);
-          setTimeout(()=>p.remove(),650);
+      const index=data.tasks.findIndex(t=>t.id===id);
+      if(index<0)return;
+      const animate=!!(el && el.isConnected && data.settings.motion && !matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const rect=animate?el.getBoundingClientRect():null;
+      if(animate){
+        // The effect is drawn outside the scrolling pane so no edge can clip it.
+        const ghost=el.cloneNode(true);
+        ghost.className='task bubble-ghost';
+        ghost.removeAttribute('tabindex');ghost.removeAttribute('role');
+        Object.assign(ghost.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px',animationDelay:'0ms'});
+        document.body.append(ghost);
+        ghost.addEventListener('animationend',()=>ghost.remove(),{once:true});
+        setTimeout(()=>ghost.remove(),450);
+        const colors=['#fff','#e7b7f5','#8ce8ed','#ffc9df','#b7afff'];
+        for(let i=0;i<19;i++){
+          const particle=document.createElement('i');
+          const theta=Math.PI*2*i/19+(Math.random()-.5)*.4;
+          const travel=48+Math.random()*115;
+          particle.className='pop-particle';
+          particle.style.cssText=`left:${rect.left+rect.width*(.28+Math.random()*.44)}px;top:${rect.top+rect.height*(.24+Math.random()*.52)}px;--dx:${Math.cos(theta)*travel}px;--dy:${Math.sin(theta)*travel}px;--size:${3+Math.random()*7}px;--spark-color:${colors[i%colors.length]}`;
+          document.body.append(particle);
+          particle.addEventListener('animationend',()=>particle.remove(),{once:true});
+          setTimeout(()=>particle.remove(),500);
         }
-        setTimeout(()=>{render();toast('Completed · added to Heap')},470);
-      } else {render();toast('Completed · added to Heap')}
+      }
+      const t=data.tasks.splice(index,1)[0];
+      t.completedAt=Date.now();data.completed.push(t);save();feedback('finish');closeSheet();
+      render();toast('Completed · added to Heap');
     }
     function deleteForever(id,completed=false){
       if(!confirm('Delete this task permanently? This cannot be undone.')) return;
@@ -902,17 +942,26 @@
         el.classList.add('holding');
         timer = setTimeout(() => {
           fired = true;
-          suppressClickUntil = Date.now() + 650;
+          suppressClickUntil = Date.now() + 180;
           reset();
           finish(id, el);
-        }, 640);
+        }, 510);
       });
       el.addEventListener('pointermove', e => {
         if (start && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > 13) { cancelled = true; reset(); }
       });
-      el.addEventListener('pointerup', reset);
+      let touchOpened = false;
+      el.addEventListener('pointerup', e => {
+        const tapped=!!start && !fired && !cancelled && Math.hypot(e.clientX-start[0],e.clientY-start[1])<13;
+        reset();
+        if (tapped && e.pointerType==='touch') {
+          touchOpened=true;
+          openTask(id); // Don't depend on a delayed synthetic click on Android.
+        }
+      });
       el.addEventListener('pointercancel', () => { cancelled = true; reset(); });
       el.addEventListener('click', e => {
+        if(touchOpened){touchOpened=false;e.preventDefault();return;}
         if (fired || cancelled || Date.now() < suppressClickUntil) { e.preventDefault(); return; }
         openTask(id);
       });
@@ -1194,7 +1243,7 @@
           suppressClickUntil = Date.now() + 700;
           clearBlank();
           openCreate();
-        }, 540);
+        }, 475);
       });
       scroller.addEventListener('pointermove', e => {
         if (blankStart && Math.hypot(e.clientX - blankStart[0], e.clientY - blankStart[1]) > 12) clearBlank();
@@ -1212,7 +1261,7 @@
       if (modal || e.target.closest('input,textarea,.heap-settings')) return;
       const p = e.touches[0];
       const scroller = e.target.closest('.content') || scrollerForSurface(surface);
-      gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, startScrollLeft:scroller.scrollLeft, surfaceAtStart: surface, bottomEdge:p.clientY>window.innerHeight-105, peeking:false, topPeeking:false };
+      gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, startScrollLeft:scroller.scrollLeft, surfaceAtStart: surface, bottomEdge:p.clientY>window.innerHeight-105, topEdge:p.clientY<Math.max(140,window.innerHeight*.21), peeking:false, topPeeking:false };
     }, {passive:true});
 
     shell.addEventListener('touchmove', e => {
@@ -1222,7 +1271,7 @@
       const dy=p.clientY-gesture.y,dx=p.clientX-gesture.x;
       // At the very top of Heap, a downward held pull lifts the entire screen
       // to reveal Emilia. Normal downward navigation is unchanged elsewhere.
-      if(surface==='trash' && dy>32 && Math.abs(dx)<70){
+      if(surface==='trash' && gesture.topEdge && dy>32 && Math.abs(dx)<70 && (gesture.scroller?.scrollLeft||0)<5){
         gesture.topPeeking=true;
         const drop=Math.min(190,Math.max(48,dy*.78));
         shell.style.setProperty('--top-peek-drop',`${drop}px`);

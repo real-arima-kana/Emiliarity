@@ -1,17 +1,23 @@
-# Emiliarity v1.0 — Emilia Easter Eggs
+# Emiliarity v1.1 — Responsiveness polish
 
-Built on v0.9, with two artwork changes only:
+Built on v1.0, preserving task storage and the app’s three icons.
 
-- **Bottom Easter egg:** restored the exact original `emilia-peek.png` from v0.8, without extending or editing it.
-- **Top Easter egg:** added the approved sideways-glancing, gently frustrated Emilia line art as `emilia-top.png`. When viewing Heap (above Todo), drag down and hold to lift the app and reveal her. Release to close.
+## What changed
 
-All three app icon files (`icon.svg`, `icon-192.png`, `icon-512.png`) are unchanged. All other app behaviour remains as in v0.9.
+- Top Emilia is now genuinely transparent purple line art, and is revealed behind the moving Heap screen rather than fading in.
+- Bottom Emilia is the exact original artwork and is revealed behind the lifting weekday screen.
+- Completing a task now creates a fast, rounded bubble ghost and independent particles outside the clipped list panel.
+- Faster task holds and immediate touch-up activation for opening task details.
+- Faster weekday and vertical transitions, and native horizontal scrolling without snap/smooth-scroll interference.
+- The upper Easter egg only responds to a deliberate pull beginning near the top of the Heap screen.
 
-## Deployment
+## Update an existing GitHub Pages installation
 
-1. Export a backup from the current installed app.
-2. Extract the ZIP and upload all files inside `emiliarity/` to the root of the existing GitHub Pages repository, including the **new `emilia-top.png`**.
-3. Commit the changes, wait for Pages deployment and reload your live app.
-4. Avoid clearing your Chrome site data because it stores your tasks.
+1. Export a backup before replacing app files.
+2. Extract the ZIP, upload its files into the root of the existing GitHub repository, and commit.
+3. Wait for GitHub Pages to deploy, then reload from Chrome.
+4. Don't clear site data; locally saved tasks remain on the same website origin.
 
-The app stores tasks under the original local-storage key so they should remain intact on the same GitHub Pages origin.
+## Validation
+
+The JavaScript passes Node.js syntax checking and the ZIP can be integrity-checked. Physical Android gesture responsiveness and haptic timing must still be tested on-device.
