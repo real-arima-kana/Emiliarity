@@ -570,6 +570,26 @@
 @keyframes particleFlight{0%{opacity:1;transform:scale(.9)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.15)}}
 .no-motion .bubble-ghost,.no-motion .pop-particle{animation:none!important;opacity:0}
 
+
+/* v1.2: consistent modal, true drag scrolling, concealed Easter eggs */
+.peek,.top-peek{opacity:0!important;visibility:hidden!important;transition:none!important;pointer-events:none!important}
+.peek.active,.top-peek.active{opacity:1!important;visibility:visible!important}
+/* Clip the art to just the area uncovered by the moving screen. */
+.top-peek.active{clip-path:inset(0 0 max(0px,calc(100% - var(--top-peek-drop,0px))) 0)!important}
+.peek.active{clip-path:inset(max(0px,calc(100% - var(--peek-open,0px))) 0 0 0)!important}
+.sheet,.overlay-create .sheet{color:var(--menu-ink,#302544)!important}
+.sheet input[type=text],.sheet textarea,.sheet .x,.sheet .icon-btn,.sheet .choices button,.sheet .actions button{color:var(--menu-ink,#302544)!important}
+.sheet .icon-btn svg{stroke:var(--menu-ink,#302544)!important}
+.sheet input[type=text],.sheet textarea{background:var(--menu-input,rgba(255,255,255,.24))!important}
+
+.shell{position:relative;z-index:3;background:rgba(20,15,36,.035)}
+.overlay{animation:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(16,12,29,.38)!important}
+.overlay .sheet,.overlay-create .sheet{animation:modalBloom .18s cubic-bezier(.2,.85,.3,1) both!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+@keyframes modalBloom{from{opacity:0;transform:scale(.965)}to{opacity:1;transform:scale(1)}}
+.content.column-scroller{scroll-behavior:auto!important;scroll-snap-type:none!important;overscroll-behavior-x:contain}
+.content.column-scroller.mouse-dragging,.content.column-scroller.mouse-dragging *{cursor:grabbing!important;user-select:none!important;-webkit-user-select:none!important}
+/* Maintain true colour matching between modal surfaces and current theme. */
+.overlay .sheet,.overlay-create .sheet{background:linear-gradient(145deg,var(--menu-a),var(--menu-b) 52%,var(--menu-c))!important}
   </style>
 </head>
 <body>
@@ -708,9 +728,13 @@
       const light=data.settings.theme==='light';
       document.documentElement.style.setProperty('--ink',light?'#342747':'#fcf7ff');
       const dark=data.settings.theme==='dark';
-      document.documentElement.style.setProperty('--menu-a',light?'rgba(255,250,255,.97)':dark?'rgba(123,113,155,.94)':'rgba(244,194,223,.89)');
-      document.documentElement.style.setProperty('--menu-b',light?'rgba(231,245,255,.97)':dark?'rgba(92,94,126,.94)':'rgba(159,213,245,.88)');
-      document.documentElement.style.setProperty('--menu-c',light?'rgba(240,232,253,.97)':dark?'rgba(110,96,137,.96)':'rgba(188,166,234,.94)');
+      const menuPalettes={iridescent:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)'],moon:['rgba(151,137,190,.96)','rgba(100,91,149,.97)','rgba(121,103,157,.97)'],blue:['rgba(149,211,236,.94)','rgba(129,183,224,.96)','rgba(159,166,224,.97)'],dark:['rgba(65,61,87,.97)','rgba(42,43,65,.98)','rgba(63,52,83,.98)'],light:['rgba(255,250,255,.97)','rgba(231,245,255,.97)','rgba(240,232,253,.97)']};
+      const menuColors=menuPalettes[data.settings.theme]||menuPalettes.iridescent;
+      document.documentElement.style.setProperty('--menu-a',menuColors[0]);
+      document.documentElement.style.setProperty('--menu-b',menuColors[1]);
+      document.documentElement.style.setProperty('--menu-c',menuColors[2]);
+      document.documentElement.style.setProperty('--menu-ink',dark||data.settings.theme==='moon'?'#faf5ff':'#302544');
+      document.documentElement.style.setProperty('--menu-input',dark||data.settings.theme==='moon'?'rgba(255,255,255,.13)':'rgba(255,255,255,.24)');
       const hasPhoto=!!data.settings.backgroundImage;
       const blur=Math.max(0,Math.min(32,+data.settings.backgroundBlur||0));
       document.documentElement.style.setProperty('--photo-blur',blur+'px');
@@ -970,6 +994,7 @@
 
     function sheet(titleText,isCreate=false){
       closeSheet();
+      theme(); // Apply the active atmosphere before the modal is inserted.
       const overlay = document.createElement('div');
       overlay.className = 'overlay'+(isCreate?' overlay-create':'');
       overlay.innerHTML = '<section class="sheet" role="dialog" aria-modal="true"><div class="handle"></div><div class="sheet-header"><h2></h2><button class="x" aria-label="Close">×</button></div><div class="sheet-body"></div></section>';
@@ -995,14 +1020,17 @@
       feedback('create-open');
       const { body } = sheet('New task',true);
       body.innerHTML = '<label for="newTitle">Title</label><input id="newTitle" type="text" maxlength="140" placeholder="What needs doing?"><label for="newDesc">Description · optional</label><textarea id="newDesc" maxlength="5000" placeholder="Add some detail…"></textarea><div class="actions"><button class="primary" id="newSave">Add task</button></div>';
+      let adding=false;
       const add = () => {
+        if(adding)return;
         const name = $('newTitle').value.trim();
         if (!name) { $('newTitle').focus(); return; }
+        adding=true;
         data.tasks.push({ id: makeId(), title:name, description:$('newDesc').value.trim(), day: surface === 'heap' ? 'heap' : currentDay, createdAt: Date.now() });
         save(); feedback('create'); closeSheet(); render(); toast('Added');
       };
       $('newSave').onclick = add;
-      $('newTitle').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+      $('newTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); add(); } });
       focusInput($('newTitle'));
     }
 
@@ -1256,6 +1284,51 @@
 
     $('heapSettings').onclick = openSettings;
 
+    // Mouse/trackpad input: direct, pixel-for-pixel horizontal dragging in Todo and Heap.
+    // Do not bind a CSS transition to scrollLeft; motion follows the pointer instantly.
+    for(const id of ['heapContent','trashContent']){
+      const scroller=$(id);
+      let drag=null;
+      scroller.addEventListener('pointerdown',e=>{
+        if(e.pointerType!=='mouse'||e.button!==0||modal)return;
+        drag={x:e.clientX,y:e.clientY,scrollLeft:scroller.scrollLeft,moved:false};
+      });
+      scroller.addEventListener('pointermove',e=>{
+        if(!drag||!(e.buttons&1))return;
+        const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+        if(!drag.moved&&Math.abs(dx)<5)return;
+        if(!drag.moved&&Math.abs(dx)<Math.abs(dy))return;
+        drag.moved=true;
+        scroller.classList.add('mouse-dragging');
+        scroller.scrollLeft=drag.scrollLeft-dx;
+        clearBlank();
+        e.preventDefault();
+      });
+      const finishDrag=()=>{
+        if(drag?.moved){
+          scroller.dataset.suppressTaskClick='1';
+          setTimeout(()=>{delete scroller.dataset.suppressTaskClick},120);
+        }
+        drag=null;
+        scroller.classList.remove('mouse-dragging');
+      };
+      scroller.addEventListener('pointerup',finishDrag);
+      scroller.addEventListener('pointercancel',finishDrag);
+      scroller.addEventListener('pointerleave',e=>{if(drag&&!(e.buttons&1))finishDrag()});
+      scroller.addEventListener('click',e=>{
+        if(scroller.dataset.suppressTaskClick==='1'){
+          e.preventDefault();e.stopImmediatePropagation();
+        }
+      },true);
+      // Vertical mouse-wheel deltas translate to continuous horizontal movement.
+      scroller.addEventListener('wheel',e=>{
+        if(scroller.scrollWidth<=scroller.clientWidth+2)return;
+        const delta=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
+        scroller.scrollLeft+=delta;
+        e.preventDefault();
+      },{passive:false});
+    }
+
     const shell = $('shell');
     shell.addEventListener('touchstart', e => {
       if (modal || e.target.closest('input,textarea,.heap-settings')) return;
@@ -1286,6 +1359,7 @@
         gesture.peeking=true;
         const lift=Math.min(168,Math.max(65,-dy*.8));
         shell.style.setProperty('--peek-lift',`-${lift}px`);
+        document.documentElement.style.setProperty('--peek-open',lift+'px');
         shell.classList.add('easter-lift');
         $('peek').classList.add('active');
         if(e.cancelable)e.preventDefault();return;
@@ -1295,8 +1369,8 @@
 
     shell.addEventListener('touchend', e => {
       if (!gesture || modal) return;
-      if(gesture.peeking){$('peek').classList.remove('active');shell.classList.remove('easter-lift');gesture=null;return;}
-      if(gesture.topPeeking){$('topPeek').classList.remove('active');shell.classList.remove('easter-drop');gesture=null;return;}
+      if(gesture.peeking){shell.classList.remove('easter-lift');$('peek').classList.remove('active');gesture=null;return;}
+      if(gesture.topPeeking){shell.classList.remove('easter-drop');$('topPeek').classList.remove('active');gesture=null;return;}
       const p = e.changedTouches[0];
       const dx = p.clientX - gesture.x;
       const dy = p.clientY - gesture.y;
@@ -1306,9 +1380,8 @@
       if(surface!=='day' && absX>48 && absX>absY*1.12){
         // Native horizontal pan remains primary; this handles Android webviews
         // that swallow the touch because of a surrounding gesture handler.
-        if(Math.abs((scroller.scrollLeft||0)-gesture.startScrollLeft)<8 && scroller.scrollWidth>scroller.clientWidth+4){
-          scroller.scrollBy({left:dx<0?scroller.clientWidth*.86:-scroller.clientWidth*.86,behavior:'smooth'});
-        }
+        // The upper lists follow the finger natively instead of jumping by a page.
+        // Deliberately don't add an animated scrollBy here.
       } else if (surface === 'day' && absX > 55 && absX > absY * 1.2) {
         moveDay(currentDay + (dx < 0 ? 1 : -1), dx < 0 ? 'left' : 'right');
       } else if (absY > 70 && absY > absX * 1.2 && (dy < 0 || atTop)) {
