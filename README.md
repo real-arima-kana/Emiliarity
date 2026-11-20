@@ -1,23 +1,19 @@
-# Emiliarity v1.8 — Minimal polish
+# Emiliarity v1.9
 
-This update retains the task data format and artwork of v1.7.
+A small refinement to task editing, weekday awareness, and Android notifications.
 
 ## Changes
+- Edit Task matches the minimal two-field Add Task surface with no visible X, placeholders or heading; tap outside to close and save.
+- Existing task actions remain as small icons: next day, move, notification, complete and delete.
+- Bell icon: show the task title and optional description as a regular, immediately dismissible Android system notification. Notifications require HTTPS and explicit permission, and are supported by compatible browsers, such as Android Chrome. This is an immediate notification, **not a timed/background reminder**. Swiping it away doesn't affect the task.
+- Today is underlined in the day heading, and the app opens on the current day, respecting the existing 4 AM rollover.
+- Both Emilia images and all three app icons remain unchanged.
 
-- Add Task is a single translucent popup with just two editable boxes (title and optional description), plus a small confirm control. The unnecessary inner frame and close X are gone. Tap outside to dismiss.
-- Settings uses the same understated tinted glass surface, with no extra close X; tap outside or press Escape to dismiss.
-- Added subtle matching light/shade gradients at the edges of vertical panes for smoother visual continuity as you swipe through Heap, Todo, and weekdays.
-- Removed a duplicate `choose` button ID in the task details view.
-- Custom gradient settings are retained when temporarily switching to another atmosphere.
-- Service worker version bumped to ensure the new files update cleanly.
+## Update
+1. Export a backup in Settings.
+2. Replace files at the GitHub Pages repository root with the contents of this folder.
+3. Commit, allow GitHub Pages to deploy and refresh/reopen the app.
+4. To try notifications, open an existing task and tap the bell icon. Grant notification permission if Android asks.
 
-No changes to the two Emilia image files or the three app icons.
-
-## Deployment
-
-1. Export a backup from Settings before replacing app files.
-2. Upload every file in this directory to the repository root hosting your GitHub Pages site.
-3. Commit the files to the published branch.
-4. Reload the live app after it deploys. If the installed PWA retains the old interface, fully close and relaunch it once.
-
-Note: The local Chromium smoke tests covered opening/closing Settings, creating a title-only task with Enter, touching a task to open its editor, and dismissing by tapping outside. Gesture transitions still need testing on a real Android device.
+## Notes
+No account, server, or push-notification backend is added. The notification appears when you tap the bell while Emiliarity is open. Depending on your Android notification settings, it may appear silently or as a normal notification. Browser and Android settings control permission and presentation.

@@ -845,6 +845,46 @@ body{color:var(--ink)!important}
 .pane-trash{background:linear-gradient(180deg,rgba(19,13,43,.23),rgba(10,7,26,.38))!important}
 @media (prefers-reduced-motion:reduce){.overlay-minimal .sheet{animation:none!important}}
 
+/* v1.9: matching edit/create surfaces and subtle today underline */
+.pane-day .heading.is-today{
+  text-decoration-line:underline;
+  text-decoration-thickness:2px;
+  text-underline-offset:.13em;
+  text-decoration-color:rgba(255,255,255,.9);
+}
+.overlay-edit .sheet{width:min(100%,480px)!important;padding:19px!important}
+.overlay-edit .sheet-header{display:none!important}
+.overlay-edit .sheet-body{padding:0!important}
+.overlay-edit .edit-fields{display:flex;flex-direction:column;gap:10px}
+.overlay-edit .edit-fields :is(#detailTitle,#detailDesc){
+  width:100%!important;box-sizing:border-box!important;
+  background:linear-gradient(115deg,rgba(255,255,255,.095),rgba(255,255,255,.035))!important;
+  border:1px solid rgba(255,255,255,.24)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11)!important;
+  border-radius:18px!important;color:#fff!important;
+  padding:14px 16px!important;resize:none!important;letter-spacing:.012em!important;
+}
+.overlay-edit .edit-fields #detailTitle{min-height:51px!important;font-size:20px!important}
+.overlay-edit .edit-fields #detailDesc{min-height:112px!important;font-size:15px!important}
+.overlay-edit .edit-fields :is(#detailTitle,#detailDesc):focus{border-color:rgba(255,255,255,.62)!important;outline:none!important}
+.overlay-edit .icon-actions{display:flex;justify-content:space-between;gap:8px;margin-top:6px;flex-wrap:nowrap}
+.overlay-edit .icon-actions .icon-btn{
+  display:grid!important;place-items:center!important;flex:1 1 0;min-width:0;
+  height:45px!important;padding:10px!important;border-radius:15px!important;
+  border:1px solid rgba(255,255,255,.24)!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.045))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.1)!important;color:white!important;
+}
+.overlay-edit .icon-actions .icon-btn:active{transform:scale(.95)}
+.overlay-edit .icon-actions .icon-btn svg{width:21px;height:21px;stroke:#fff!important}
+.overlay-edit .choices{margin:8px 0 0!important}
+.overlay.overlay-edit .sheet{
+  background:linear-gradient(127deg,rgba(255,255,255,.15),transparent 52%,rgba(255,255,255,.04)),
+  linear-gradient(160deg,rgba(37,31,57,.84),rgba(17,16,31,.87) 65%,rgba(43,31,61,.84))!important;
+  border:1px solid rgba(255,255,255,.29)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.25)!important;
+}
+
   </style>
 </head>
 <body>
@@ -922,6 +962,7 @@ body{color:var(--ink)!important}
     data.completed = data.completed.filter(t => t && typeof t.title === 'string' && t.title.trim());
 
     let currentDay = today();
+    let lastActiveDay = currentDay;
     let surface = 'day'; // day | heap | trash
     let modal = null;
     let toastTimer = null;
@@ -1155,6 +1196,7 @@ body{color:var(--ink)!important}
 
     function renderDay(){
       $('dayHeading').textContent = DAYS[currentDay];
+      $('dayHeading').classList.toggle('is-today', currentDay === today());
       const list = $('dayList');
       list.className = 'content-list ' + (dayAnim ? `day-animate-${dayAnim}` : '');
       renderTaskList(list, data.tasks.filter(t => t.day === currentDay));
@@ -1340,15 +1382,21 @@ body{color:var(--ink)!important}
       if (!t) return;
       feedback();
       const { body } = sheet('');
+      modal.classList.add('overlay-minimal','overlay-edit');
+      modal.querySelector('.sheet').setAttribute('aria-label','Edit task');
       body.innerHTML = `
-        <input id="detailTitle" class="detail-title" type="text" maxlength="140" placeholder="Task title">
-        <textarea id="detailDesc" class="detail-desc" maxlength="5000" placeholder="Description"></textarea>
+        <div class="edit-fields">
+        <input id="detailTitle" class="detail-title" aria-label="Task title" type="text" maxlength="140" autocomplete="off">
+        <textarea id="detailDesc" class="detail-desc" aria-label="Optional description" maxlength="5000"></textarea>
         <div class="icon-actions">
           <button class="icon-btn" id="tomorrow" aria-label="Delay to next day" title="Next day">
             <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66"></path><path d="M20 4v6h-6"></path></svg>
           </button>
           <button class="icon-btn" id="choose" aria-label="Move to another day" title="Move to">
             <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 10h18"></path></svg>
+          </button>
+          <button class="icon-btn" id="notifyTask" aria-label="Show as notification" title="Show as notification">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg>
           </button>
           <button class="icon-btn" id="complete" aria-label="Complete and move to Heap" title="Complete">
             <svg viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"></path></svg>
@@ -1358,6 +1406,7 @@ body{color:var(--ink)!important}
           </button>
         </div>
         <div class="choices" id="choices" hidden></div>
+        </div>
       `;
       const titleEl = $('detailTitle');
       const descEl = $('detailDesc');
@@ -1379,10 +1428,46 @@ body{color:var(--ink)!important}
       descEl.addEventListener('input', scheduleCommit);
       $('tomorrow').onclick = () => { commit(); t.day = (Number.isInteger(t.day) ? t.day + 1 : today() + 1) % 7; save(); feedback(); closeSheet(); render(); toast('Moved to ' + DAYS[t.day]); };
       $('choose').onclick = () => { commit(); dayChoices(t); };
+      $('notifyTask').onclick = () => notifyTask(t, titleEl, descEl, commit);
       $('complete').onclick = () => { commit(); finish(id); };
       $('deleteTask').onclick = () => { commit(); deleteForever(id); };
       // Do not focus an editor unless the user explicitly taps it.
 
+    }
+
+    // An immediate, dismissible Android notification—not a scheduled reminder.
+    // Permission is requested only from an explicit button tap.
+    async function notifyTask(task, titleEl, descEl, commit){
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('showNotification' in ServiceWorkerRegistration.prototype)){
+        toast('Notifications unavailable in this browser');
+        return;
+      }
+      const title=titleEl.value.trim();
+      if(!title){titleEl.focus();return;}
+      let permission=Notification.permission;
+      if(permission==='default'){
+        try{permission=await Notification.requestPermission();}
+        catch{toast('Notification permission unavailable');return;}
+      }
+      if(permission!=='granted'){
+        toast('Allow notifications in Android or browser settings');
+        return;
+      }
+      try{
+        commit();
+        const registration=await navigator.serviceWorker.register('./sw.js');
+        await registration.showNotification(title,{
+          body:descEl.value.trim(),
+          icon:'./icon-192.png',
+          tag:'emiliarity-task-'+task.id,
+          data:{taskId:task.id,url:new URL('./',location.href).href},
+          silent:false
+        });
+        toast('Notification shown');
+      }catch(err){
+        console.warn('Emiliarity notification:',err);
+        toast('Could not show notification');
+      }
     }
 
     function exportBackup(){
@@ -1764,10 +1849,12 @@ body{color:var(--ink)!important}
       if (e.key === 'n' && !e.ctrlKey && !e.metaKey) openCreate();
     });
 
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { if(today()!==lastActiveDay){currentDay=today();surface='day';} lastActiveDay=today();render(); } });
     window.addEventListener('resize', () => {renderHeap();renderTrash();syncAllFades();});
     setInterval(() => { if (!document.hidden && todayKey() !== data.lastDate) render(); }, 60000);
 
+    // Launch on today, not the day last viewed before the app was closed.
+    currentDay = today(); surface = 'day';
     render();
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();
