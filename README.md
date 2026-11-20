@@ -1,18 +1,22 @@
-# Emiliarity v1.3 — Stacked Emilia + Swipe Fix
+# Emiliarity v1.4
 
-## Changes
-- Emilia illustrations now belong to the vertical app stack itself. Pull **down** beyond Heap to reveal top Emilia, or **up** beyond the weekdays to reveal bottom Emilia. The original artwork remains unchanged.
-- Reveal movement follows finger displacement and snaps gently back on release, without free-floating or permanently visible overlays.
-- Todo and Heap use pixel-by-pixel finger-driven horizontal scrolling, bypassing unreliable native pan routing. Mouse drag and wheel support remain.
-- All existing tasks, settings, backgrounds and image/icon assets remain compatible.
+Refinement update focused on feel, framing, and momentum.
 
-## Deploy
-1. Back up tasks in Settings → Export backup.
-2. Unzip and upload **all** files from this directory into the root of the existing GitHub Pages repository, replacing old files.
-3. Commit and wait for deployment. Refresh the live site in Chrome once, then reopen the installed app.
-4. Do not clear site data without backing up tasks first.
+## What changed
+- Bottom Emilia is displayed smaller within the lower reveal.
+- Bottom reveal travel is capped so you do not drag beyond the artwork into empty space.
+- Top Emilia is displayed larger and visually clearer, with slightly thicker visible lines via CSS and no separate resting line showing.
+- The upper boundary is positioned a little higher so the top artwork sits more naturally against the Heap edge.
+- Todo and Heap horizontal scrolling now keep moving briefly with momentum after you let go, for both touch drags and mouse drags.
+- Modal and panel text now favour white by default except in the light atmosphere, improving legibility and consistency.
+- Icons and Emilia image files are unchanged.
 
-## Notes
-- Vertical pull reveals only happen on the outermost screens: bottom of a weekday screen with no list overflow, or down beyond Heap's upper edge.
-- Sideways swipe in Todo/Heap is effective when enough tasks exist to fill multiple columns.
-- Android touch interactions have not been physically tested; please test on your phone.
+## Files
+Upload all files in this folder to the root of your GitHub repository, replacing the previous version.
+
+## Update steps
+1. Export a backup from the app.
+2. Replace the files in your GitHub repo with the contents of this folder.
+3. Commit the changes.
+4. Wait for GitHub Pages to redeploy.
+5. Refresh the site and reopen the installed app.

@@ -604,6 +604,37 @@
 .content.column-scroller{overflow-x:auto!important;overflow-y:hidden!important;touch-action:none!important;scroll-behavior:auto!important;scroll-snap-type:none!important}
 .content.column-scroller.no-scroll{overflow-x:auto!important}
 .content.column-scroller .column-list{min-width:100%}
+  
+/* v1.4: satisfaction polish — art framing, momentum, and brighter white typography */
+.stage{transition:transform .28s cubic-bezier(.2,.88,.24,1)!important}
+.heading,.task-name,.paper,.sheet,.sheet *,button,input,textarea{color:var(--ink)}
+.stage-art-top{height:min(35vh,286px)!important;bottom:calc(100% - 10px)!important;align-items:end!important}
+.stage-art-top img{
+  width:min(112vw,660px)!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center bottom!important;
+  transform:translateY(8px)!important;
+  filter:
+    drop-shadow(0 0 0 rgba(104,74,150,.95))
+    drop-shadow(.55px 0 0 rgba(104,74,150,.94))
+    drop-shadow(-.55px 0 0 rgba(104,74,150,.94))
+    drop-shadow(0 .55px 0 rgba(104,74,150,.94))
+    drop-shadow(0 -.55px 0 rgba(104,74,150,.94));
+}
+.stage-art-bottom{height:min(40vh,276px)!important;top:300%!important;align-items:start!important}
+.stage-art-bottom img{
+  width:min(76vw,318px)!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center top!important;
+}
+.pane-trash{padding-top:calc(env(safe-area-inset-top) + 64px)!important}
+.content.column-scroller{cursor:grab;scrollbar-width:none}
+.content.column-scroller::-webkit-scrollbar{display:none}
+.task,.column-list .task{transition:transform .12s ease,background .18s ease,border-color .18s ease}
+.task:active{transform:scale(.985)}
+
   </style>
 </head>
 <body>
@@ -747,8 +778,8 @@
       document.documentElement.style.setProperty('--menu-a',menuColors[0]);
       document.documentElement.style.setProperty('--menu-b',menuColors[1]);
       document.documentElement.style.setProperty('--menu-c',menuColors[2]);
-      document.documentElement.style.setProperty('--menu-ink',dark||data.settings.theme==='moon'?'#faf5ff':'#302544');
-      document.documentElement.style.setProperty('--menu-input',dark||data.settings.theme==='moon'?'rgba(255,255,255,.13)':'rgba(255,255,255,.24)');
+      document.documentElement.style.setProperty('--menu-ink', data.settings.theme==='light' ? '#2f2442' : '#faf7ff');
+      document.documentElement.style.setProperty('--menu-input', data.settings.theme==='light' ? 'rgba(255,255,255,.72)' : 'rgba(255,255,255,.14)');
       const hasPhoto=!!data.settings.backgroundImage;
       const blur=Math.max(0,Math.min(32,+data.settings.backgroundBlur||0));
       document.documentElement.style.setProperty('--photo-blur',blur+'px');
@@ -1298,14 +1329,38 @@
 
     $('heapSettings').onclick = openSettings;
 
+    const scrollerMomentum = new WeakMap();
+    function stopMomentum(scroller){
+      const state=scrollerMomentum.get(scroller);
+      if(state?.raf) cancelAnimationFrame(state.raf);
+      scrollerMomentum.set(scroller,{vx:0,raf:0});
+    }
+    function flingScroller(scroller,vx){
+      stopMomentum(scroller);
+      if(!Number.isFinite(vx) || Math.abs(vx) < 0.08) return;
+      const state={vx,raf:0};
+      const tick=()=>{
+        scroller.scrollLeft += state.vx * 16;
+        state.vx *= 0.94;
+        const max = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+        if(scroller.scrollLeft <= 0 || scroller.scrollLeft >= max) state.vx *= 0.72;
+        if(Math.abs(state.vx) < 0.02){ stopMomentum(scroller); return; }
+        state.raf=requestAnimationFrame(tick);
+      };
+      state.raf=requestAnimationFrame(tick);
+      scrollerMomentum.set(scroller,state);
+    }
+
     // Mouse/trackpad input: direct, pixel-for-pixel horizontal dragging in Todo and Heap.
-    // Do not bind a CSS transition to scrollLeft; motion follows the pointer instantly.
+    // Do not bind a CSS transition to scrollLeft; motion follows the pointer instantly,
+    // then glides briefly with a little momentum when released.
     for(const id of ['heapContent','trashContent']){
       const scroller=$(id);
       let drag=null;
       scroller.addEventListener('pointerdown',e=>{
         if(e.pointerType!=='mouse'||e.button!==0||modal)return;
-        drag={x:e.clientX,y:e.clientY,scrollLeft:scroller.scrollLeft,moved:false};
+        stopMomentum(scroller);
+        drag={x:e.clientX,y:e.clientY,scrollLeft:scroller.scrollLeft,moved:false,lastX:e.clientX,lastT:performance.now(),vx:0};
       });
       scroller.addEventListener('pointermove',e=>{
         if(!drag||!(e.buttons&1))return;
@@ -1315,6 +1370,9 @@
         drag.moved=true;
         scroller.classList.add('mouse-dragging');
         scroller.scrollLeft=drag.scrollLeft-dx;
+        const now=performance.now(),dt=Math.max(8,now-drag.lastT);
+        drag.vx=-(e.clientX-drag.lastX)/dt;
+        drag.lastX=e.clientX; drag.lastT=now;
         clearBlank();
         e.preventDefault();
       });
@@ -1322,6 +1380,7 @@
         if(drag?.moved){
           scroller.dataset.suppressTaskClick='1';
           setTimeout(()=>{delete scroller.dataset.suppressTaskClick},120);
+          flingScroller(scroller, drag.vx);
         }
         drag=null;
         scroller.classList.remove('mouse-dragging');
@@ -1337,18 +1396,21 @@
       // Vertical mouse-wheel deltas translate to continuous horizontal movement.
       scroller.addEventListener('wheel',e=>{
         if(scroller.scrollWidth<=scroller.clientWidth+2)return;
+        stopMomentum(scroller);
         const delta=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
         scroller.scrollLeft+=delta;
         e.preventDefault();
       },{passive:false});
     }
 
+
     const shell = $('shell');
     shell.addEventListener('touchstart', e => {
       if (modal || e.target.closest('input,textarea,.heap-settings')) return;
       const p = e.touches[0];
       const scroller = e.target.closest('.content') || scrollerForSurface(surface);
-      gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, startScrollLeft:scroller.scrollLeft, surfaceAtStart: surface, bottomEdge:p.clientY>window.innerHeight-105, topEdge:p.clientY<Math.max(140,window.innerHeight*.21), peeking:false, topPeeking:false, horizontalDragging:false };
+      stopMomentum(scroller);
+      gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, startScrollLeft:scroller.scrollLeft, surfaceAtStart: surface, bottomEdge:p.clientY>window.innerHeight-105, topEdge:p.clientY<Math.max(140,window.innerHeight*.21), peeking:false, topPeeking:false, horizontalDragging:false, lastX:p.clientX, lastT:performance.now(), vx:0 };
     }, {passive:true});
 
     // Drag the stacked artwork itself into view. Pull distance follows the finger.
@@ -1365,6 +1427,9 @@
         if(scroller && scroller.scrollWidth>scroller.clientWidth+2){
           gesture.horizontalDragging=true;
           scroller.scrollLeft=gesture.startScrollLeft-dx;
+          const now=performance.now(),dt=Math.max(8,now-gesture.lastT);
+          gesture.vx=-(p.clientX-gesture.lastX)/dt;
+          gesture.lastX=p.clientX; gesture.lastT=now;
           if(e.cancelable)e.preventDefault();
           return;
         }
@@ -1382,7 +1447,7 @@
       if(canPeek && dy< -25 && ay>ax*1.1){
         gesture.peeking=true;
         stage.classList.add('direct-pull');
-        stage.style.setProperty('--pull-y',(-Math.min(390,-dy*.93))+'px');
+        stage.style.setProperty('--pull-y',(-Math.min(248,-dy*.9))+'px');
         if(e.cancelable)e.preventDefault();
         return;
       }
@@ -1400,7 +1465,7 @@
       if(gesture.peeking){settlePull();gesture=null;return;}
       if(gesture.topPeeking){settlePull();gesture=null;return;}
       const p = e.changedTouches[0];
-      if(gesture.horizontalDragging){gesture=null;return;}
+      if(gesture.horizontalDragging){ flingScroller(gesture.scroller, gesture.vx); gesture=null; return; }
       const dx = p.clientX - gesture.x;
       const dy = p.clientY - gesture.y;
       const absX = Math.abs(dx), absY = Math.abs(dy);
