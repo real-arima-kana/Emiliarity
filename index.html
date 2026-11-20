@@ -635,6 +635,27 @@
 .task,.column-list .task{transition:transform .12s ease,background .18s ease,border-color .18s ease}
 .task:active{transform:scale(.985)}
 
+
+/* v1.5: clean artwork framing and explicit custom atmosphere */
+.stage-art-top{bottom:calc(100% + 3px)!important;height:min(34vh,278px)!important}
+.stage-art-top img{
+  width:min(106vw,620px)!important;
+  height:100%!important;
+  transform:none!important;
+  filter:none!important;
+  object-position:center bottom!important;
+}
+/* Keep the stack boundary opaque, preventing the illustration showing at rest. */
+.pane-trash{background:linear-gradient(180deg,rgba(96,62,130,.33),rgba(17,10,43,.40))!important}
+.stage-art-bottom{height:min(29vh,205px)!important;top:300%!important;align-items:start!important}
+.stage-art-bottom img{
+  width:min(53.2vw,223px)!important;
+  height:100%!important;
+  transform:translateY(16px)!important;
+  object-position:center top!important;
+}
+.themes [data-color=custom]{background:linear-gradient(115deg,#f4bfd8,#9fe5f4 55%,#d8bef6)!important;color:#32264a}
+
   </style>
 </head>
 <body>
@@ -700,7 +721,8 @@
     if (!data || !Array.isArray(data.tasks)) data = { tasks: [], trash: [], settings: {}, lastDate: todayKey() };
     data.trash = Array.isArray(data.trash) ? data.trash : [];
     data.settings = Object.assign({ sound:true, haptics:true, dim:34, theme:'iridescent', motion:true, colors:null }, data.settings);
-    if (!['iridescent','moon','blue','dark','light'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
+    if (!['iridescent','moon','blue','dark','light','custom'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
+    if(Array.isArray(data.settings.colors) && data.settings.colors.length===3 && data.settings.theme!=='custom') data.settings.theme='custom';
     data.settings.gradientOpacity ??= 72;
     data.settings.backgroundImage ??= null;
     data.settings.backgroundBlur ??= 0;
@@ -762,18 +784,19 @@
         moon:['#7e75aa','#b7add4','#a381be','#9b8bbb','#625b8e','#463d68','#655987'],
         blue:['#8ec4dd','#74a7d7','#d6badf','#afc6e8','#52749a','#41567c','#6786af'],
         dark:['#2a243a','#4c3d68','#293244','#30334a','#1d1a2c','#1e2035','#252237'],
-        light:['#fff9fc','#e9f3ff','#f3e8fc','#fff7f9','#eceafa','#e4eeff','#f6e9f3']
+        light:['#fff9fc','#e9f3ff','#f3e8fc','#fff7f9','#eceafa','#e4eeff','#f6e9f3'],
+        custom:['#f4bfd8','#9fe5f4','#d8bef6','#ffc4db','#958eb8','#746d99','#8183b1']
       };
       const defaultPalette = palettes[data.settings.theme] || palettes.iridescent;
       const userColors = data.settings.colors;
       const validColor = c => typeof c === 'string' && /^#[0-9a-fA-F]{6}$/.test(c);
-      const colors = Array.isArray(userColors) && userColors.length === 3 && userColors.every(validColor)
+      const colors = data.settings.theme==='custom' && Array.isArray(userColors) && userColors.length === 3 && userColors.every(validColor)
         ? [userColors[0],userColors[1],userColors[2],userColors[0],userColors[2],userColors[1],userColors[0]]
         : defaultPalette;
       const light=data.settings.theme==='light';
       document.documentElement.style.setProperty('--ink',light?'#342747':'#fcf7ff');
       const dark=data.settings.theme==='dark';
-      const menuPalettes={iridescent:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)'],moon:['rgba(151,137,190,.96)','rgba(100,91,149,.97)','rgba(121,103,157,.97)'],blue:['rgba(149,211,236,.94)','rgba(129,183,224,.96)','rgba(159,166,224,.97)'],dark:['rgba(65,61,87,.97)','rgba(42,43,65,.98)','rgba(63,52,83,.98)'],light:['rgba(255,250,255,.97)','rgba(231,245,255,.97)','rgba(240,232,253,.97)']};
+      const menuPalettes={iridescent:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)'],moon:['rgba(151,137,190,.96)','rgba(100,91,149,.97)','rgba(121,103,157,.97)'],blue:['rgba(149,211,236,.94)','rgba(129,183,224,.96)','rgba(159,166,224,.97)'],dark:['rgba(65,61,87,.97)','rgba(42,43,65,.98)','rgba(63,52,83,.98)'],light:['rgba(255,250,255,.97)','rgba(231,245,255,.97)','rgba(240,232,253,.97)'],custom:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)']};
       const menuColors=menuPalettes[data.settings.theme]||menuPalettes.iridescent;
       document.documentElement.style.setProperty('--menu-a',menuColors[0]);
       document.documentElement.style.setProperty('--menu-b',menuColors[1]);
@@ -1190,7 +1213,7 @@
         <div class="themes">
           <button data-color="iridescent">Iridescent</button><button data-color="moon">Moon</button>
           <button data-color="blue">Blue</button><button data-color="dark">Simple dark</button>
-          <button data-color="light">Simple light</button>
+          <button data-color="light">Simple light</button><button data-color="custom">Custom</button>
         </div>
         <label>Custom gradient · tap each colour wheel</label>
         <div class="colour-wheel-row">
@@ -1221,7 +1244,9 @@
         $(id).value=custom[i];
         $(id).oninput=()=>{
           data.settings.colors=[$('colorA').value,$('colorB').value,$('colorC').value];
+          data.settings.theme='custom';
           save();theme();
+          body.querySelectorAll('[data-color]').forEach(b=>b.classList.toggle('selected',b.dataset.color==='custom'));
         };
       });
       const refresh=()=>{closeSheet();openSettings()};
@@ -1267,7 +1292,13 @@
       body.querySelectorAll('[data-color]').forEach(b=>{
         b.classList.toggle('selected',b.dataset.color===data.settings.theme);
         b.onclick=()=>{
-          data.settings.theme=b.dataset.color;data.settings.colors=null;save();theme();
+          if(b.dataset.color==='custom'){
+            data.settings.colors=[$('colorA').value,$('colorB').value,$('colorC').value];
+            data.settings.theme='custom';
+          } else {
+            data.settings.theme=b.dataset.color;data.settings.colors=null;
+          }
+          save();theme();
           body.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('selected',x===b));feedback();
         };
       });
@@ -1447,7 +1478,7 @@
       if(canPeek && dy< -25 && ay>ax*1.1){
         gesture.peeking=true;
         stage.classList.add('direct-pull');
-        stage.style.setProperty('--pull-y',(-Math.min(248,-dy*.9))+'px');
+        stage.style.setProperty('--pull-y',(-Math.min(190,-dy*.9))+'px');
         if(e.cancelable)e.preventDefault();
         return;
       }

@@ -1,22 +1,16 @@
-# Emiliarity v1.4
+# Emiliarity v1.5 — small visual refinements
 
-Refinement update focused on feel, framing, and momentum.
+## Changes
+- Top Emilia is hidden fully above Heap at rest and is revealed only as you pull farther.
+- Removed the heavy extra line-thickening effect from top Emilia.
+- Custom is now an explicit atmosphere option. Changing a gradient colour activates Custom automatically; choosing a preset switches back to that preset.
+- Bottom Emilia is displayed at roughly 70% of its previous size, a little farther down, and its reveal distance is capped to match.
+- All original icon files and illustration image files remain unchanged.
 
-## What changed
-- Bottom Emilia is displayed smaller within the lower reveal.
-- Bottom reveal travel is capped so you do not drag beyond the artwork into empty space.
-- Top Emilia is displayed larger and visually clearer, with slightly thicker visible lines via CSS and no separate resting line showing.
-- The upper boundary is positioned a little higher so the top artwork sits more naturally against the Heap edge.
-- Todo and Heap horizontal scrolling now keep moving briefly with momentum after you let go, for both touch drags and mouse drags.
-- Modal and panel text now favour white by default except in the light atmosphere, improving legibility and consistency.
-- Icons and Emilia image files are unchanged.
+## Deploy
+1. Export a task backup first.
+2. Extract this ZIP and upload the files **inside** `emiliarity/` to the root of your GitHub repository.
+3. Commit the changes. Keep GitHub Pages set to `main` / `(root)`.
+4. Once Pages redeploys, refresh the live site on Android.
 
-## Files
-Upload all files in this folder to the root of your GitHub repository, replacing the previous version.
-
-## Update steps
-1. Export a backup from the app.
-2. Replace the files in your GitHub repo with the contents of this folder.
-3. Commit the changes.
-4. Wait for GitHub Pages to redeploy.
-5. Refresh the site and reopen the installed app.
+Tasks are kept in the same browser storage location as before. Do not clear browser storage to force an update.
