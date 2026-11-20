@@ -1,34 +1,37 @@
-# Emiliarity — iridescent glass edition (v0.3)
+# Emiliarity v0.4
 
-A personal, minimal Android-friendly PWA with a seven-day repeating task cycle, Heap, and Rubble.
+Minimal liquid-glass weekly todo app for Android via GitHub Pages.
 
-## Update your existing GitHub Pages app
+## What's new in v0.4
+- List scrolling now only appears when content actually overflows.
+- Top and bottom fade indicators appear when more tasks exist off-screen.
+- Task cards use a more colourful liquid-glass badge.
+- Task detail actions use icon buttons.
+- Task title and description can be edited directly by tapping into them once the task is opened.
+- Heap is darker and Rubble is darker still.
+- Vertical transitions now move between stacked panels instead of swapping views abruptly.
+- App icon updated to the new Emiliarity look.
 
-1. **First, export a backup** in the current app if you have tasks: open Heap → Settings → Export backup. Keep the `.json` file safe.
-2. In the GitHub repository hosting your existing Drift site, replace the contents at the publishing root with the **files from this folder**. Do not upload the ZIP itself or nest the app inside an extra folder. You can keep the GitHub repository named `drift`; the app shown on the phone is named **Emiliarity**.
-3. Confirm these files are at the publishing root: `index.html`, `manifest.webmanifest`, `sw.js`, `icon.svg`, `icon-192.png`, `icon-512.png`. `README.md` is optional.
-4. Commit changes. In **Settings → Pages**, keep **Deploy from a branch → main → /(root)**, unless you chose a different publishing folder.
-5. Open your old Pages URL (for example `https://YOUR-USERNAME.github.io/drift/`). The URL stays the same if you did not rename the repository.
-6. Close and reopen the installed web app to fetch the update; sometimes opening the site once in Chrome and reopening the app again is needed because of service-worker caching.
-7. If Chrome still labels the home-screen app **Drift**, remove **only its launcher icon/installation**, then reinstall it from the same site. **Do not clear Chrome/site storage or uninstall with data deletion before confirming/exporting your backup.**
+## Files to upload
+Upload these files to the root of your GitHub repository:
+- `index.html`
+- `manifest.webmanifest`
+- `sw.js`
+- `icon.svg`
+- `icon-192.png`
+- `icon-512.png`
+- `README.md`
 
-For a new installation, visit the live site in Android Chrome → ⋮ → **Add to Home screen** → **Install** (labels vary).
+## Updating an existing live install
+1. Export a backup from the existing app first.
+2. Replace the files in your GitHub repo with the new ones.
+3. Commit the changes.
+4. Wait for GitHub Pages to redeploy.
+5. Open the live site once in Chrome.
+6. If the home-screen icon does not refresh, remove the installed shortcut/app and reinstall it from Chrome.
+7. Do not clear site data unless you have already exported a backup.
 
-## Gestures
-
-- **Horizontal swipe:** previous/next day, cycling Monday → Sunday → Monday.
-- **Swipe down:** day → Heap → Rubble.
-- **Swipe up:** Rubble → Heap → the current day.
-- **Hold blank space for ~0.54 sec:** add a new task. This works on the blank area beneath tasks; avoid sliding your finger while holding.
-- **Tap a task:** view its description, edit, move to a day/Heap, delay one day, or complete it.
-- **Hold a task for ~0.64 sec:** complete it with a disappearing effect. Tap a scrap in Rubble to restore it.
-- **Heap settings icon:** background palette, darkness, motion, sound, haptics, and JSON backups.
-- On desktop, the arrow keys navigate days; press **N** to add a task.
-
-## Data and rollover
-
-- Retains the original `drift-v1` local storage key for compatibility with earlier Drift builds. Normal same-origin updates therefore preserve tasks without migration.
-- Deletion counts as completion; Rubble stores up to the most recent 80 completed tasks.
-- A 4 AM logical day boundary advances unfinished tasks from the previous day to the next. If the app is closed, it catches up when reopened. This is **not** an alarm or guaranteed background execution.
-- The app code is public on GitHub Pages, but your task data stays in local browser storage and isn't uploaded or synced. Clearing browser/site data may erase it; back up periodically.
-- Haptic vibration, browser audio, and scroll gestures can differ across Android devices and browsers; test on the actual phone.
+## Notes
+- Existing tasks should be preserved because the local storage key remains compatible.
+- The app is still a Progressive Web App, not an APK.
+- Sounds and haptics depend on Android/Chrome support.
