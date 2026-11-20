@@ -527,6 +527,13 @@
 .peek{width:min(70vw,285px)!important;height:205px!important;}
 .peek img{height:100%!important;width:100%!important;object-fit:contain!important;object-position:center bottom!important;}
 .no-motion .day-pane-ghost{animation:none!important;}
+
+/* v1.0: reveal approved Emilia artwork only while pulling beyond the top of Heap. */
+.top-peek{position:fixed;top:0;left:50%;width:min(96vw,560px);height:min(33vh,232px);transform:translateX(-50%);pointer-events:none;z-index:2;opacity:0;display:flex;align-items:flex-end;justify-content:center;transition:opacity .22s ease;overflow:hidden}
+.top-peek.active{opacity:1}
+.top-peek img{display:block;width:100%;max-height:100%;object-fit:contain;object-position:center bottom}
+.shell.easter-drop{transform:translateY(var(--top-peek-drop,130px));border-radius:22px 22px 0 0;box-shadow:0 -12px 30px rgba(29,14,45,.14)}
+.no-motion .top-peek{transition:none!important}
   </style>
 </head>
 <body>
@@ -567,6 +574,7 @@
   </main>
   <div class="toast" id="toast" aria-live="polite"></div>
   <div class="peek" id="peek"><img src="./emilia-peek.png" alt="" draggable="false"></div>
+  <div class="top-peek" id="topPeek"><img src="./emilia-top.png" alt="" draggable="false"></div>
 
   <script>
   (() => {
@@ -1204,7 +1212,7 @@
       if (modal || e.target.closest('input,textarea,.heap-settings')) return;
       const p = e.touches[0];
       const scroller = e.target.closest('.content') || scrollerForSurface(surface);
-      gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, startScrollLeft:scroller.scrollLeft, surfaceAtStart: surface, bottomEdge:p.clientY>window.innerHeight-105, peeking:false };
+      gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, startScrollLeft:scroller.scrollLeft, surfaceAtStart: surface, bottomEdge:p.clientY>window.innerHeight-105, peeking:false, topPeeking:false };
     }, {passive:true});
 
     shell.addEventListener('touchmove', e => {
@@ -1212,6 +1220,17 @@
       const p = e.touches[0];
       if (Math.abs(p.clientY - gesture.y) > 14 || Math.abs(p.clientX - gesture.x) > 14) clearBlank();
       const dy=p.clientY-gesture.y,dx=p.clientX-gesture.x;
+      // At the very top of Heap, a downward held pull lifts the entire screen
+      // to reveal Emilia. Normal downward navigation is unchanged elsewhere.
+      if(surface==='trash' && dy>32 && Math.abs(dx)<70){
+        gesture.topPeeking=true;
+        const drop=Math.min(190,Math.max(48,dy*.78));
+        shell.style.setProperty('--top-peek-drop',`${drop}px`);
+        shell.classList.add('easter-drop');
+        $('topPeek').classList.add('active');
+        if(e.cancelable)e.preventDefault();
+        return;
+      }
       const dayScroll=$('dayContent');
       const canPeek=gesture.bottomEdge && surface==='day' && dayScroll.scrollHeight<=dayScroll.clientHeight+2;
       if(canPeek && dy < -28 && Math.abs(dx)<70){
@@ -1228,6 +1247,7 @@
     shell.addEventListener('touchend', e => {
       if (!gesture || modal) return;
       if(gesture.peeking){$('peek').classList.remove('active');shell.classList.remove('easter-lift');gesture=null;return;}
+      if(gesture.topPeeking){$('topPeek').classList.remove('active');shell.classList.remove('easter-drop');gesture=null;return;}
       const p = e.changedTouches[0];
       const dx = p.clientX - gesture.x;
       const dy = p.clientY - gesture.y;
@@ -1254,7 +1274,7 @@
       gesture = null;
     }, {passive:true});
 
-    shell.addEventListener('touchcancel', () => { $('peek').classList.remove('active');shell.classList.remove('easter-lift');gesture = null; clearBlank(); });
+    shell.addEventListener('touchcancel', () => { $('peek').classList.remove('active');shell.classList.remove('easter-lift');$('topPeek').classList.remove('active');shell.classList.remove('easter-drop');gesture = null; clearBlank(); });
 
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') closeSheet();

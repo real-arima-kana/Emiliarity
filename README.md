@@ -1,24 +1,17 @@
-# Emiliarity v0.9 — Smoothness Update
+# Emiliarity v1.0 — Emilia Easter Eggs
 
-## Features
-- Todo and Heap fill down into columns and scroll horizontally. An Android gesture fallback is included.
-- Completed tasks in Heap auto-expire after a selectable interval: 1, 3, 7 (default), 14 or 30 days, or Never.
-- Weekday horizontal swipes transition the entire pane, not just the task list.
-- Completion uses a rounded swelling / popping animation with independently animated circular particles.
-- Background image blurriness can be adjusted in Settings, alongside gradient overlay strength.
-- Menu surfaces use gentler transparent gradients.
-- Bottom Emilia artwork now has expanded transparent canvas for breathing room.
-- **Top Emilia Easter egg preview is not included**. Approval is pending before integrating it.
-- Your installed Emiliarity icons have **not been changed**.
+Built on v0.9, with two artwork changes only:
 
-## Publish
-1. Export a backup from the existing app via Todo → Settings.
-2. Extract this ZIP and upload **the contents of the `emiliarity` folder** to the root of your existing GitHub repository (replace same-named files).
-3. Commit and check the GitHub Pages deployment.
-4. Reload the live URL in Chrome, then reopen the installed app.
-5. Do not clear site data without exporting a backup.
+- **Bottom Easter egg:** restored the exact original `emilia-peek.png` from v0.8, without extending or editing it.
+- **Top Easter egg:** added the approved sideways-glancing, gently frustrated Emilia line art as `emilia-top.png`. When viewing Heap (above Todo), drag down and hold to lift the app and reveal her. Release to close.
 
-## Notes
-- Completion/Heap retention is local to this device; expiration is applied when the app is rendered/reopened, not via a background service.
-- The horizontal swipe fallback advances one approximate column if the browser didn't scroll it natively.
-- JavaScript syntax checked. A headless Chromium test was attempted but did not successfully start in this environment; mobile touch interaction is still unverified.
+All three app icon files (`icon.svg`, `icon-192.png`, `icon-512.png`) are unchanged. All other app behaviour remains as in v0.9.
+
+## Deployment
+
+1. Export a backup from the current installed app.
+2. Extract the ZIP and upload all files inside `emiliarity/` to the root of the existing GitHub Pages repository, including the **new `emilia-top.png`**.
+3. Commit the changes, wait for Pages deployment and reload your live app.
+4. Avoid clearing your Chrome site data because it stores your tasks.
+
+The app stores tasks under the original local-storage key so they should remain intact on the same GitHub Pages origin.
