@@ -1,32 +1,34 @@
-# Drift v0.2 — glass edition
+# Emiliarity — iridescent glass edition (v0.3)
 
-A minimal, standalone Android PWA built for a repeating seven-day cycle.
+A personal, minimal Android-friendly PWA with a seven-day repeating task cycle, Heap, and Rubble.
 
-## Install through GitHub Pages
+## Update your existing GitHub Pages app
 
-1. Create a free **public** GitHub repository named `drift`.
-2. Upload **the contents of this folder**, not the enclosing `drift-app` folder or the ZIP. Include `index.html`, `sw.js`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, and `icon-512.png`.
-3. Open **Settings → Pages → Build and deployment**. Choose **Deploy from a branch**, `main`, `/(root)`, then **Save**.
-4. After deployment, visit `https://YOUR-USERNAME.github.io/drift/` in **Chrome on Android**.
-5. Open Chrome's menu and choose **Install app** or **Add to Home screen**.
+1. **First, export a backup** in the current app if you have tasks: open Heap → Settings → Export backup. Keep the `.json` file safe.
+2. In the GitHub repository hosting your existing Drift site, replace the contents at the publishing root with the **files from this folder**. Do not upload the ZIP itself or nest the app inside an extra folder. You can keep the GitHub repository named `drift`; the app shown on the phone is named **Emiliarity**.
+3. Confirm these files are at the publishing root: `index.html`, `manifest.webmanifest`, `sw.js`, `icon.svg`, `icon-192.png`, `icon-512.png`. `README.md` is optional.
+4. Commit changes. In **Settings → Pages**, keep **Deploy from a branch → main → /(root)**, unless you chose a different publishing folder.
+5. Open your old Pages URL (for example `https://YOUR-USERNAME.github.io/drift/`). The URL stays the same if you did not rename the repository.
+6. Close and reopen the installed web app to fetch the update; sometimes opening the site once in Chrome and reopening the app again is needed because of service-worker caching.
+7. If Chrome still labels the home-screen app **Drift**, remove **only its launcher icon/installation**, then reinstall it from the same site. **Do not clear Chrome/site storage or uninstall with data deletion before confirming/exporting your backup.**
 
-If updating an existing `drift` repo, replace the existing files with the v0.2 files, then reopen the app. The service worker will refresh cached assets when online; a second reopen may be needed.
+For a new installation, visit the live site in Android Chrome → ⋮ → **Add to Home screen** → **Install** (labels vary).
 
-## How it works
+## Gestures
 
-- Swipe left/right to switch days. At the first/last day, it wraps around.
-- Pull down from a day to view the Heap; pull down from the Heap to enter the rubble. Swipe up to return.
-- Hold blank space, or tap **Add a thought**, to create a title and optional description.
-- Tap a task for its description, editing, next-day delay, scheduling, and a completion button.
-- Hold a task for about 0.64 seconds to finish it: an animated fizzle and pop. Finished tasks are kept in rubble and can be restored by tapping them.
-- In Preferences, choose a violet/ocean/ember background, adjust darkness, toggle sounds, haptics, and ambient motion, or export/import a JSON backup.
-- At 4 AM **local device time**, remaining tasks from the previous day move into the next day's slot. The app catches up when reopened; this is a repeating cycle without calendar-dated individual tasks.
+- **Horizontal swipe:** previous/next day, cycling Monday → Sunday → Monday.
+- **Swipe down:** day → Heap → Rubble.
+- **Swipe up:** Rubble → Heap → the current day.
+- **Hold blank space for ~0.54 sec:** add a new task. This works on the blank area beneath tasks; avoid sliding your finger while holding.
+- **Tap a task:** view its description, edit, move to a day/Heap, delay one day, or complete it.
+- **Hold a task for ~0.64 sec:** complete it with a disappearing effect. Tap a scrap in Rubble to restore it.
+- **Heap settings icon:** background palette, darkness, motion, sound, haptics, and JSON backups.
+- On desktop, the arrow keys navigate days; press **N** to add a task.
 
-## Privacy and limitations
+## Data and rollover
 
-- Tasks and descriptions are saved in **localStorage on this device only**. They are not uploaded to GitHub or synced. Clearing site data can erase everything. Use **Export backup** before clearing browser storage or changing phones.
-- GitHub Pages serves the publicly accessible **app code**, not the private task list stored on the phone. Do not hardcode secrets or task data into the published files.
-- A PWA cannot reliably execute at exactly 4 AM while completely closed, so task rollover happens on the next app open/return.
-- Haptics and sounds are best effort: `navigator.vibrate` is device/browser-dependent and sound begins after an interaction.
-- Works offline after a successful initial visit and service-worker installation. Offline caching may vary by browser.
-- Rubble retains the latest 80 completed tasks. Importing a backup replaces the current local data (confirmation required).
+- Retains the original `drift-v1` local storage key for compatibility with earlier Drift builds. Normal same-origin updates therefore preserve tasks without migration.
+- Deletion counts as completion; Rubble stores up to the most recent 80 completed tasks.
+- A 4 AM logical day boundary advances unfinished tasks from the previous day to the next. If the app is closed, it catches up when reopened. This is **not** an alarm or guaranteed background execution.
+- The app code is public on GitHub Pages, but your task data stays in local browser storage and isn't uploaded or synced. Clearing browser/site data may erase it; back up periodically.
+- Haptic vibration, browser audio, and scroll gestures can differ across Android devices and browsers; test on the actual phone.
