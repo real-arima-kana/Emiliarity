@@ -423,9 +423,67 @@
 @keyframes createBloom{from{opacity:0;transform:scale(.78);filter:blur(15px)}65%{opacity:1}to{opacity:1;transform:scale(1);filter:blur(0)}}
 .no-motion .sky,.no-motion .sky::before{animation:none!important}
 
+
+/* v0.7: transparent luminous cards, overflow-safe pile, unified surfaces */
+:root{--menu-a:rgba(244,194,223,.89);--menu-b:rgba(159,213,245,.88);--menu-c:rgba(188,166,234,.94)}
+.shell,.pane{overflow:hidden}
+.content-wrap{overflow:visible}
+.content{padding-left:12px;padding-right:12px;scroll-padding-top:8px;scroll-padding-bottom:8px}
+.content-list{padding:4px 0 8px;min-height:100%}
+.task,.heap-slip,.rubble-card{
+  background:linear-gradient(122deg,rgba(255,221,236,.12),rgba(255,255,255,.035) 48%,rgba(129,223,255,.12))!important;
+  border:1px solid rgba(255,255,255,.58)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.65),inset 0 -1px rgba(255,255,255,.15)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.task{border-radius:26px;overflow:visible;isolation:isolate}
+.task::before{left:18px;right:18px;opacity:.8}
+.task::after{display:none}
+.task-badge{background:linear-gradient(155deg,rgba(255,255,255,.19),rgba(150,225,245,.05))!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.task.disappear{animation:oomphSafe .46s cubic-bezier(.2,.75,.2,1) forwards}
+@keyframes oomphSafe{0%{opacity:1;transform:scale(1)}40%{opacity:1;transform:scale(1.035)}100%{opacity:0;transform:scale(.83);filter:blur(7px)}}
+.task .spark{max-width:9px;max-height:9px}
+.rubble-mound{min-height:100%;overflow:visible}
+.rubble-card{width:var(--rubble-width,48%);left:var(--rubble-left);min-width:0;max-width:none}
+@keyframes rubbleDrop{from{opacity:0;transform:translateY(-52px) rotate(var(--rubble-rot)) scale(.94)}to{opacity:1;transform:rotate(var(--rubble-rot)) scale(1)}}
+.fade{height:18px}
+.fade-top{background:linear-gradient(180deg,rgba(13,13,24,.13),transparent)}
+.fade-bottom{background:linear-gradient(0deg,rgba(13,13,24,.16),transparent)}
+.overlay{background:rgba(12,10,22,.34);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sheet,.overlay-create .sheet{
+  color:#2d2544;
+  background:linear-gradient(148deg,var(--menu-a),var(--menu-b) 48%,var(--menu-c))!important;
+  border:1px solid rgba(255,255,255,.76)!important;
+  box-shadow:0 12px 60px rgba(22,15,41,.18),inset 0 1px rgba(255,255,255,.7);
+}
+.sheet input[type=text],.sheet textarea{color:#302544;border-color:rgba(255,255,255,.62);background:rgba(255,255,255,.24)}
+.sheet input::placeholder,.sheet textarea::placeholder{color:rgba(48,36,74,.55)}
+.sheet .icon-btn svg{stroke:#372b56}
+.sheet .icon-btn,.sheet .choices button,.sheet .actions button{color:#332746;border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.25)}
+.sheet .actions button.primary,.sheet .choices button.active{background:rgba(255,255,255,.81)}
+.sheet .handle{background:rgba(61,41,100,.3)}
+.sheet .x{color:#302544}
+.themes{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.themes [data-color=dark]{background:linear-gradient(110deg,#151622,#3d394d)!important;color:#fff}
+.themes [data-color=light]{background:linear-gradient(110deg,#fdf5fd,#e0edff)!important;color:#2c2850}
+.colour-wheel-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.colour-wheel-row label{margin:0 0 6px}
+.colour-wheel-row input[type=color]{width:100%;height:52px;border-radius:50%;background:transparent;cursor:pointer}
+.upload-note{font-size:12px;opacity:.76}
+.setting input[type=range]{accent-color:#8f78d1}
+.setting input[type=checkbox]{accent-color:#8f78d1}
+.peek{position:absolute;z-index:9;width:min(65vw,290px);height:min(65vw,290px);left:50%;bottom:0;transform:translate(-50%,104%);transition:transform .28s cubic-bezier(.18,.9,.24,1);pointer-events:none;filter:drop-shadow(0 0 14px rgba(246,193,248,.24))}
+.peek.active{transform:translate(-50%,41%)}
+.peek img{width:100%;height:100%;object-fit:contain;border-radius:42%;-webkit-mask-image:radial-gradient(ellipse at 50% 48%,#000 39%,transparent 72%);mask-image:radial-gradient(ellipse at 50% 48%,#000 39%,transparent 72%)}
+.bg-photo{position:fixed;inset:0;background-position:center;background-size:cover;pointer-events:none;opacity:0;transition:opacity .3s ease}
+.sky{z-index:0;opacity:var(--gradient-opacity,1)}
+.bg-photo{z-index:0}
+.no-motion .peek{transition:none!important}
+
   </style>
 </head>
 <body>
+  <div class="bg-photo" id="bgPhoto"></div>
   <div class="sky" id="sky"></div>
   <main class="shell" id="shell">
     <div class="stage" id="stage">
@@ -461,6 +519,7 @@
     </div>
   </main>
   <div class="toast" id="toast" aria-live="polite"></div>
+  <div class="peek" id="peek"><img src="./icon-512.png" alt=""></div>
 
   <script>
   (() => {
@@ -485,7 +544,9 @@
     if (!data || !Array.isArray(data.tasks)) data = { tasks: [], trash: [], settings: {}, lastDate: todayKey() };
     data.trash = Array.isArray(data.trash) ? data.trash : [];
     data.settings = Object.assign({ sound:true, haptics:true, dim:34, theme:'iridescent', motion:true, colors:null }, data.settings);
-    if (!['iridescent','moon','blue'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
+    if (!['iridescent','moon','blue','dark','light'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
+    data.settings.gradientOpacity ??= 72;
+    data.settings.backgroundImage ??= null;
     data.tasks = data.tasks.filter(t => t && typeof t.title === 'string' && t.title.trim() && (t.day === 'heap' || Number.isInteger(t.day) && t.day >= 0 && t.day < 7));
     data.trash = data.trash.filter(t => t && typeof t.title === 'string' && t.title.trim());
     data.completed = Array.isArray(data.completed) ? data.completed : [];
@@ -532,7 +593,9 @@
       const palettes = {
         iridescent:['#f4bfd8','#9fe5f4','#d8bef6','#ffc4db','#958eb8','#746d99','#8183b1'],
         moon:['#7e75aa','#b7add4','#a381be','#9b8bbb','#625b8e','#463d68','#655987'],
-        blue:['#8ec4dd','#74a7d7','#d6badf','#afc6e8','#52749a','#41567c','#6786af']
+        blue:['#8ec4dd','#74a7d7','#d6badf','#afc6e8','#52749a','#41567c','#6786af'],
+        dark:['#2a243a','#4c3d68','#293244','#30334a','#1d1a2c','#1e2035','#252237'],
+        light:['#fff9fc','#e9f3ff','#f3e8fc','#fff7f9','#eceafa','#e4eeff','#f6e9f3']
       };
       const defaultPalette = palettes[data.settings.theme] || palettes.iridescent;
       const userColors = data.settings.colors;
@@ -540,6 +603,17 @@
       const colors = Array.isArray(userColors) && userColors.length === 3 && userColors.every(validColor)
         ? [userColors[0],userColors[1],userColors[2],userColors[0],userColors[2],userColors[1],userColors[0]]
         : defaultPalette;
+      const light=data.settings.theme==='light';
+      document.documentElement.style.setProperty('--ink',light?'#342747':'#fcf7ff');
+      const dark=data.settings.theme==='dark';
+      document.documentElement.style.setProperty('--menu-a',light?'rgba(255,250,255,.97)':dark?'rgba(123,113,155,.94)':'rgba(244,194,223,.89)');
+      document.documentElement.style.setProperty('--menu-b',light?'rgba(231,245,255,.97)':dark?'rgba(92,94,126,.94)':'rgba(159,213,245,.88)');
+      document.documentElement.style.setProperty('--menu-c',light?'rgba(240,232,253,.97)':dark?'rgba(110,96,137,.96)':'rgba(188,166,234,.94)');
+      const hasPhoto=!!data.settings.backgroundImage;
+      const image=$('bgPhoto');
+      image.style.backgroundImage=hasPhoto?`url(${JSON.stringify(data.settings.backgroundImage)})`:'none';
+      image.style.opacity=hasPhoto?'1':'0';
+      document.documentElement.style.setProperty('--gradient-opacity',hasPhoto?String((Math.max(0,Math.min(100,+data.settings.gradientOpacity||0)))/100):'1');
       $('sky').style.background = `radial-gradient(ellipse at 10% 18%,${colors[0]} 0%,transparent 38%),radial-gradient(ellipse at 84% 18%,${colors[1]} 0%,transparent 34%),radial-gradient(ellipse at 44% 63%,${colors[2]} 0%,transparent 43%),radial-gradient(ellipse at 82% 76%,${colors[3]} 0%,transparent 34%),linear-gradient(145deg,${colors[4]},${colors[5]} 50%,${colors[6]})`;
       document.documentElement.style.setProperty('--dim',(Math.max(0,Math.min(90,+data.settings.dim||0))/100).toString());
       document.body.classList.toggle('no-motion',!data.settings.motion);
@@ -634,21 +708,22 @@
         ...data.completed.map(t=>({...t,legacy:false,at:t.completedAt||t.createdAt||0}))
       ].sort((a,b)=>a.at-b.at);
       const pile=document.createElement('div');pile.className='rubble-mound';
-      const rows=Math.ceil(items.length/5);
-      pile.style.height=Math.max(340,rows*65+250)+'px';
-      // The cards gradually stack across a tapered mound rather than in a grid.
+      const rows=Math.ceil(items.length/4);
+      pile.style.height=Math.max(340,rows*86+200)+'px';
       items.forEach((t,i)=>{
-        const row=Math.floor(i/5),col=i%5;
+        const row=Math.floor(i/4),col=i%4;
         const item=document.createElement('button');
         item.className='rubble-card';
         const seed=(i*29+17)%53;
-        const taper=(row%4)*5;
-        item.style.setProperty('--rubble-left',`${4+(col*12 +seed%9)%66+taper/3}%`);
-        item.style.setProperty('--rubble-top',`${Math.max(18,215-row*4)+row*65+(seed%27)}px`);
-        item.style.setProperty('--rubble-rot',`${(i*31%39)-19}deg`);
+        const width=44+(i%3)*3;
+        const spread=[4,19,35,49][col];
+        const left=Math.max(2,Math.min(98-width,spread+(seed%9-4)));
+        item.style.setProperty('--rubble-left',`${left}%`);
+        item.style.setProperty('--rubble-width',`${width}%`);
+        item.style.setProperty('--rubble-top',`${Math.max(10,190-row*3)+row*82+seed%18}px`);
+        item.style.setProperty('--rubble-rot',`${(i*31%23)-11}deg`);
         item.style.setProperty('--rubble-z',i+1);
-        item.style.setProperty('--rubble-hue',`${(i*51)%360}deg`);
-        item.style.setProperty('--rubble-delay',`${Math.min(240,i*16)}ms`);
+        item.style.setProperty('--rubble-delay',`${Math.min(180,i*12)}ms`);
         item.textContent=t.title;
         item.title=t.legacy?'Restore old task':'Restore completed task';
         item.onclick=()=>t.legacy?restore(t.id):openCompleted(t.id);
@@ -903,28 +978,90 @@
 
     function openSettings(){
       const { body } = sheet('Settings');
-      body.innerHTML = '<label>Atmosphere</label><div class="themes"><button data-color="iridescent">Iridescent</button><button data-color="moon">Moon</button><button data-color="blue">Blue</button></div><label>Custom gradient colours</label><div class="setting"><span>Blush</span><input id="colorA" type="color" value="#f4bfd8"></div><div class="setting"><span>Sky</span><input id="colorB" type="color" value="#9fe5f4"></div><div class="setting"><span>Lavender</span><input id="colorC" type="color" value="#d8bef6"></div><div class="actions"><button id="resetBackground">Reset to default</button></div><div class="setting"><span>Darken background</span><input type="range" min="0" max="90" id="dim"></div><div class="setting"><span>Sounds</span><input id="sound" type="checkbox"></div><div class="setting"><span>Haptics</span><input id="haptics" type="checkbox"></div><div class="setting"><span>Motion</span><input id="motion" type="checkbox"></div><div class="actions"><button id="backup">Export backup</button><button id="restoreBackup">Import backup</button><input id="importFile" type="file" accept=".json,application/json" hidden></div><p class="note">Hold empty space to add. Tap a task for details and tap the title or description to edit. Hold a task to complete it into the Heap, or use the trash icon for permanent deletion. Swipe down to Todo for unscheduled tasks, then again to Heap for completed tasks. Swipe up to return. Tasks are stored on this device, so export backups occasionally.</p><div class="actions"><button id="done" class="primary">Done</button></div>';
-      $('dim').value = data.settings.dim;
-      const custom = data.settings.colors || ['#f4bfd8','#9fe5f4','#d8bef6'];
-      ['colorA','colorB','colorC'].forEach((id,i)=>{$(id).value=custom[i];$(id).oninput=()=>{data.settings.colors=[$('colorA').value,$('colorB').value,$('colorC').value];save();theme()}});
-      $('resetBackground').onclick=()=>{data.settings.colors=null;data.settings.theme='iridescent';data.settings.dim=34;save();closeSheet();theme();openSettings();toast('Default restored')};
-      for (const k of ['sound','haptics','motion']) $(k).checked = !!data.settings[k];
-      $('dim').oninput = e => { data.settings.dim = +e.target.value; save(); theme(); };
-      for (const k of ['sound','haptics','motion']) $(k).onchange = e => { data.settings[k] = e.target.checked; save(); theme(); };
-      body.querySelectorAll('[data-color]').forEach(b => {
-        b.classList.toggle('selected', b.dataset.color === data.settings.theme);
-        b.onclick = () => {
-          data.settings.theme = b.dataset.color;
-          data.settings.colors = null;
-          save(); theme();
-          body.querySelectorAll('[data-color]').forEach(x => x.classList.toggle('selected', x === b));
-          feedback();
+      body.innerHTML = `
+        <label>Atmosphere</label>
+        <div class="themes">
+          <button data-color="iridescent">Iridescent</button><button data-color="moon">Moon</button>
+          <button data-color="blue">Blue</button><button data-color="dark">Simple dark</button>
+          <button data-color="light">Simple light</button>
+        </div>
+        <label>Custom gradient · tap each colour wheel</label>
+        <div class="colour-wheel-row">
+          <div><label for="colorA">Blush</label><input id="colorA" type="color"></div>
+          <div><label for="colorB">Sky</label><input id="colorB" type="color"></div>
+          <div><label for="colorC">Lavender</label><input id="colorC" type="color"></div>
+        </div>
+        <label>Custom background image</label>
+        <div class="actions">
+          <button id="imageUpload">Import image</button><button id="removeImage">Remove image</button>
+          <input id="backgroundFile" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        </div>
+        <p class="upload-note">Images are saved on this device. For storage reliability, choose a small photo.</p>
+        <div class="setting"><span>Gradient over photo</span><input id="gradientOpacity" type="range" min="0" max="100"></div>
+        <div class="actions"><button id="resetBackground">Reset background to default</button></div>
+        <div class="setting"><span>Darken background</span><input type="range" min="0" max="90" id="dim"></div>
+        <div class="setting"><span>Sounds</span><input id="sound" type="checkbox"></div>
+        <div class="setting"><span>Haptics</span><input id="haptics" type="checkbox"></div>
+        <div class="setting"><span>Motion</span><input id="motion" type="checkbox"></div>
+        <div class="actions"><button id="backup">Export backup</button><button id="restoreBackup">Import backup</button><input id="importFile" type="file" accept=".json,application/json" hidden></div>
+        <p class="note">Hold empty space to add. Tap a task for details, hold to complete. Swipe down from a weekday for Todo, then again for Heap. Swipe up to return. Hold a downward pull at the bottom edge for a surprise.</p>
+        <div class="actions"><button id="done" class="primary">Done</button></div>
+      `;
+      const custom=data.settings.colors||['#f4bfd8','#9fe5f4','#d8bef6'];
+      ['colorA','colorB','colorC'].forEach((id,i)=>{
+        $(id).value=custom[i];
+        $(id).oninput=()=>{
+          data.settings.colors=[$('colorA').value,$('colorB').value,$('colorC').value];
+          save();theme();
         };
       });
-      $('backup').onclick = exportBackup;
-      $('restoreBackup').onclick = () => $('importFile').click();
-      $('importFile').onchange = e => importBackup(e.target.files[0]);
-      $('done').onclick = closeSheet;
+      const refresh=()=>{closeSheet();openSettings()};
+      $('resetBackground').onclick=()=>{
+        data.settings.colors=null;data.settings.theme='iridescent';
+        data.settings.dim=34;data.settings.backgroundImage=null;data.settings.gradientOpacity=72;
+        save();theme();refresh();toast('Default background restored');
+      };
+      $('imageUpload').onclick=()=>$('backgroundFile').click();
+      $('removeImage').onclick=()=>{data.settings.backgroundImage=null;save();theme();toast('Image removed')};
+      $('backgroundFile').onchange=e=>{
+        const file=e.target.files?.[0];if(!file)return;
+        if(!['image/png','image/jpeg','image/webp'].includes(file.type)){toast('Choose a PNG, JPEG or WebP image');return}
+        const reader=new FileReader();
+        reader.onload=()=>{
+          const img=new Image();
+          img.onload=()=>{
+            const canvas=document.createElement('canvas');
+            const factor=Math.min(1,1280/Math.max(img.width,img.height));
+            canvas.width=Math.max(1,Math.round(img.width*factor));canvas.height=Math.max(1,Math.round(img.height*factor));
+            const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,canvas.width,canvas.height);
+            // JPEG compression keeps user image storage within a practical size.
+            const previous=data.settings.backgroundImage;
+            data.settings.backgroundImage=canvas.toDataURL('image/jpeg',.76);
+            try{localStorage.setItem(KEY,JSON.stringify(data));theme();toast('Background imported')}
+            catch{data.settings.backgroundImage=previous;theme();toast('Image too large for device storage')}
+          };
+          img.onerror=()=>toast('Could not load image');
+          img.src=reader.result;
+        };
+        reader.readAsDataURL(file);
+      };
+      $('gradientOpacity').value=data.settings.gradientOpacity;
+      $('gradientOpacity').oninput=e=>{data.settings.gradientOpacity=+e.target.value;save();theme()};
+      $('dim').value=data.settings.dim;
+      for(const k of ['sound','haptics','motion'])$(k).checked=!!data.settings[k];
+      $('dim').oninput=e=>{data.settings.dim=+e.target.value;save();theme()};
+      for(const k of ['sound','haptics','motion'])$(k).onchange=e=>{data.settings[k]=e.target.checked;save();theme()};
+      body.querySelectorAll('[data-color]').forEach(b=>{
+        b.classList.toggle('selected',b.dataset.color===data.settings.theme);
+        b.onclick=()=>{
+          data.settings.theme=b.dataset.color;data.settings.colors=null;save();theme();
+          body.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('selected',x===b));feedback();
+        };
+      });
+      $('backup').onclick=exportBackup;
+      $('restoreBackup').onclick=()=>$('importFile').click();
+      $('importFile').onchange=e=>importBackup(e.target.files[0]);
+      $('done').onclick=closeSheet;
     }
 
     function syncFades(scroller, topFade, bottomFade){
@@ -982,7 +1119,7 @@
       if (modal || e.target.closest('input,textarea,.heap-settings')) return;
       const p = e.touches[0];
       const scroller = e.target.closest('.content') || scrollerForSurface(surface);
-      gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, surfaceAtStart: surface };
+      gesture = { x:p.clientX, y:p.clientY, scroller, startScroll: scroller.scrollTop, surfaceAtStart: surface, bottomEdge:p.clientY>window.innerHeight-105, peeking:false };
     }, {passive:true});
 
     shell.addEventListener('touchmove', e => {
@@ -990,11 +1127,16 @@
       const p = e.touches[0];
       if (Math.abs(p.clientY - gesture.y) > 14 || Math.abs(p.clientX - gesture.x) > 14) clearBlank();
       const dy=p.clientY-gesture.y,dx=p.clientX-gesture.x;
+      if(gesture.bottomEdge && surface==='day' && Math.abs(dy)>35 && Math.abs(dx)<75){
+        gesture.peeking=true;$('peek').classList.add('active');
+        if(e.cancelable)e.preventDefault();return;
+      }
       if(dy < -28 && Math.abs(dy)>Math.abs(dx)*1.2 && (surface==='heap'||surface==='trash') && e.cancelable)e.preventDefault();
     }, {passive:false});
 
     shell.addEventListener('touchend', e => {
       if (!gesture || modal) return;
+      if(gesture.peeking){$('peek').classList.remove('active');gesture=null;return;}
       const p = e.changedTouches[0];
       const dx = p.clientX - gesture.x;
       const dy = p.clientY - gesture.y;
@@ -1015,7 +1157,7 @@
       gesture = null;
     }, {passive:true});
 
-    shell.addEventListener('touchcancel', () => { gesture = null; clearBlank(); });
+    shell.addEventListener('touchcancel', () => { $('peek').classList.remove('active');gesture = null; clearBlank(); });
 
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') closeSheet();
