@@ -1,19 +1,15 @@
-# Emiliarity v1.9
+# Emiliarity v2.0 — Fullscreen Android PWA
 
-A small refinement to task editing, weekday awareness, and Android notifications.
+This build is identical to v1.9 except for installed-app display mode:
+- Android PWA manifest requests fullscreen display, hiding system status and navigation bars when supported.
+- All existing tasks, app styling, settings, Emilia artwork and icon files are unchanged.
+- Service worker cache revision updated so installed clients fetch the new manifest.
 
-## Changes
-- Edit Task matches the minimal two-field Add Task surface with no visible X, placeholders or heading; tap outside to close and save.
-- Existing task actions remain as small icons: next day, move, notification, complete and delete.
-- Bell icon: show the task title and optional description as a regular, immediately dismissible Android system notification. Notifications require HTTPS and explicit permission, and are supported by compatible browsers, such as Android Chrome. This is an immediate notification, **not a timed/background reminder**. Swiping it away doesn't affect the task.
-- Today is underlined in the day heading, and the app opens on the current day, respecting the existing 4 AM rollover.
-- Both Emilia images and all three app icons remain unchanged.
-
-## Update
-1. Export a backup in Settings.
-2. Replace files at the GitHub Pages repository root with the contents of this folder.
-3. Commit, allow GitHub Pages to deploy and refresh/reopen the app.
-4. To try notifications, open an existing task and tap the bell icon. Grant notification permission if Android asks.
+## Install
+1. Export a backup from the existing app, as a precaution.
+2. Upload all files in this folder to your GitHub Pages repository root and commit.
+3. After deployment, open the website in Chrome, refresh it, then **remove the previous Emiliarity home-screen installation and install it again** if fullscreen mode does not activate. Existing app shortcuts may retain the old display mode.
+4. Android system bars can be revealed temporarily by swiping from the edge. Depending on Android, fullscreen can affect access to system navigation; use edge gestures to exit.
 
 ## Notes
-No account, server, or push-notification backend is added. The notification appears when you tap the bell while Emiliarity is open. Depending on your Android notification settings, it may appear silently or as a normal notification. Browser and Android settings control permission and presentation.
+Changing a PWA's manifest display mode may require reinstalling the app. Back up tasks before uninstalling: some Android setups may remove app-local storage during uninstallation.
