@@ -885,6 +885,25 @@ body{color:var(--ink)!important}
   box-shadow:inset 0 1px rgba(255,255,255,.25)!important;
 }
 
+
+/* v2.1: optional genuinely monochrome atmospheres; other palettes are untouched. */
+body[data-atmosphere="black"],body[data-atmosphere="white"]{background:var(--mono-bg)}
+body[data-atmosphere="black"]{--mono-bg:#000;--mono-card:#0c0c0c;--mono-border:rgba(255,255,255,.24);--mono-ink:#fff}
+body[data-atmosphere="white"]{--mono-bg:#fff;--mono-card:#fafafa;--mono-border:rgba(0,0,0,.19);--mono-ink:#000}
+body[data-atmosphere="black"] .bg-photo,body[data-atmosphere="white"] .bg-photo{opacity:0!important}
+body[data-atmosphere="black"] .sky,body[data-atmosphere="white"] .sky{background:var(--mono-bg)!important;filter:none!important}
+body[data-atmosphere="black"] .sky::before,body[data-atmosphere="white"] .sky::before,
+body[data-atmosphere="black"] .sky::after,body[data-atmosphere="white"] .sky::after{display:none!important}
+body[data-atmosphere="black"] .pane,body[data-atmosphere="white"] .pane{background:var(--mono-bg)!important}
+body[data-atmosphere="black"] .pane::after,body[data-atmosphere="white"] .pane::after{display:none!important}
+body[data-atmosphere="black"] .task,body[data-atmosphere="white"] .task{
+ background:var(--mono-card)!important;border-color:var(--mono-border)!important;
+ box-shadow:none!important;color:var(--mono-ink)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body[data-atmosphere="black"] .task-name,body[data-atmosphere="white"] .task-name{color:var(--mono-ink)!important}
+body[data-atmosphere="white"] .heading{text-shadow:none!important}
+body[data-atmosphere="white"] .pane-day .heading.is-today{text-decoration-color:#000!important}
+body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);background:rgba(0,0,0,.055)!important;box-shadow:none!important}
+
   </style>
 </head>
 <body>
@@ -950,7 +969,7 @@ body{color:var(--ink)!important}
     if (!data || !Array.isArray(data.tasks)) data = { tasks: [], trash: [], settings: {}, lastDate: todayKey() };
     data.trash = Array.isArray(data.trash) ? data.trash : [];
     data.settings = Object.assign({ sound:true, haptics:true, dim:34, theme:'iridescent', motion:true, colors:null, font:'system', inkMode:'auto' }, data.settings);
-    if (!['iridescent','moon','blue','dark','light','custom'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
+    if (!['iridescent','moon','blue','dark','light','forest','sunset','black','white','custom'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
     if(Array.isArray(data.settings.colors) && data.settings.colors.length===3 && data.settings.theme!=='custom') data.settings.theme='custom';
     data.settings.gradientOpacity ??= 72;
     data.settings.backgroundImage ??= null;
@@ -1015,6 +1034,10 @@ body{color:var(--ink)!important}
         blue:['#8ec4dd','#74a7d7','#d6badf','#afc6e8','#52749a','#41567c','#6786af'],
         dark:['#2a243a','#4c3d68','#293244','#30334a','#1d1a2c','#1e2035','#252237'],
         light:['#fff9fc','#e9f3ff','#f3e8fc','#fff7f9','#eceafa','#e4eeff','#f6e9f3'],
+        forest:['#badbc7','#7eaa97','#d1cf9c','#dbe3b5','#507c70','#294c47','#739786'],
+        sunset:['#f2b68e','#d67e84','#e6c8ae','#f4d1aa','#a86373','#704a66','#a36f65'],
+        black:['#000000','#000000','#000000','#000000','#000000','#000000','#000000'],
+        white:['#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff'],
         custom:['#f4bfd8','#9fe5f4','#d8bef6','#ffc4db','#958eb8','#746d99','#8183b1']
       };
       const defaultPalette = palettes[data.settings.theme] || palettes.iridescent;
@@ -1023,10 +1046,11 @@ body{color:var(--ink)!important}
       const colors = data.settings.theme==='custom' && Array.isArray(userColors) && userColors.length === 3 && userColors.every(validColor)
         ? [userColors[0],userColors[1],userColors[2],userColors[0],userColors[2],userColors[1],userColors[0]]
         : defaultPalette;
-      const light=data.settings.theme==='light';
+      const light=['light','white'].includes(data.settings.theme);
+      document.body.dataset.atmosphere=data.settings.theme;
       // Text colour and font are set from the accessibility/display preferences below.
       const dark=data.settings.theme==='dark';
-      const menuPalettes={iridescent:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)'],moon:['rgba(151,137,190,.96)','rgba(100,91,149,.97)','rgba(121,103,157,.97)'],blue:['rgba(149,211,236,.94)','rgba(129,183,224,.96)','rgba(159,166,224,.97)'],dark:['rgba(65,61,87,.97)','rgba(42,43,65,.98)','rgba(63,52,83,.98)'],light:['rgba(255,250,255,.97)','rgba(231,245,255,.97)','rgba(240,232,253,.97)'],custom:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)']};
+      const menuPalettes={iridescent:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)'],moon:['rgba(151,137,190,.96)','rgba(100,91,149,.97)','rgba(121,103,157,.97)'],blue:['rgba(149,211,236,.94)','rgba(129,183,224,.96)','rgba(159,166,224,.97)'],dark:['rgba(65,61,87,.97)','rgba(42,43,65,.98)','rgba(63,52,83,.98)'],forest:['rgba(84,124,111,.95)','rgba(48,85,73,.95)','rgba(65,104,92,.96)'],sunset:['rgba(171,97,109,.95)','rgba(126,76,103,.96)','rgba(151,100,93,.96)'],black:['rgba(13,13,13,.97)','rgba(6,6,6,.98)','rgba(17,17,17,.97)'],white:['rgba(250,250,250,.97)','rgba(255,255,255,.98)','rgba(246,246,246,.97)'],light:['rgba(255,250,255,.97)','rgba(231,245,255,.97)','rgba(240,232,253,.97)'],custom:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)']};
       const menuColors=menuPalettes[data.settings.theme]||menuPalettes.iridescent;
       document.documentElement.style.setProperty('--menu-a',menuColors[0]);
       document.documentElement.style.setProperty('--menu-b',menuColors[1]);
@@ -1321,7 +1345,7 @@ body{color:var(--ink)!important}
       overlay.className = 'overlay'+(isCreate?' overlay-create':'');
       overlay.innerHTML = '<section class="sheet" role="dialog" aria-modal="true"><div class="handle"></div><div class="sheet-header"><h2></h2><button class="x" aria-label="Close">×</button></div><div class="sheet-body"></div></section>';
       const openedAt=performance.now();
-      overlay.addEventListener('click', e => { if (e.target === overlay && performance.now()-openedAt>330) closeSheet(); });
+      overlay.addEventListener('click', e => { if (e.target === overlay && performance.now()-openedAt>330) { if (overlay.submitOnOutside) overlay.submitOnOutside(); else closeSheet(); } });
       overlay.querySelector('.x').onclick = closeSheet;
       if(isCreate) overlay.classList.add('overlay-minimal');
       overlay.querySelector('h2').textContent = titleText;
@@ -1354,6 +1378,7 @@ body{color:var(--ink)!important}
         data.tasks.push({ id: makeId(), title:name, description:$('newDesc').value.trim(), day: surface === 'heap' ? 'heap' : currentDay, createdAt: Date.now() });
         save(); feedback('create'); closeSheet(); render(); toast('Added');
       };
+      modal.submitOnOutside = () => { if ($('newTitle')?.value.trim()) add(); else closeSheet(); };
       $('newSave').onclick = add;
       $('newTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); add(); } });
       focusInput($('newTitle'));
@@ -1515,7 +1540,9 @@ body{color:var(--ink)!important}
         <div class="themes">
           <button data-color="iridescent">Iridescent</button><button data-color="moon">Moon</button>
           <button data-color="blue">Blue</button><button data-color="dark">Simple dark</button>
-          <button data-color="light">Simple light</button><button data-color="custom">Custom</button>
+          <button data-color="light">Simple light</button><button data-color="forest">Forest</button>
+          <button data-color="sunset">Sunset</button><button data-color="black">Pure black</button>
+          <button data-color="white">Pure white</button><button data-color="custom">Custom</button>
         </div>
         <label class="custom-label">Colour</label>
         <div class="colour-wheel-row" id="customWheels">
@@ -1816,14 +1843,14 @@ body{color:var(--ink)!important}
       const absX = Math.abs(dx), absY = Math.abs(dy);
       const scroller = gesture.scroller || scrollerForSurface(surface);
       const atTop = (scroller?.scrollTop || 0) < 6;
-      if(surface!=='day' && absX>48 && absX>absY*1.12){
+      if(surface!=='day' && absX>41 && absX>absY*1.12){
         // Native horizontal pan remains primary; this handles Android webviews
         // that swallow the touch because of a surrounding gesture handler.
         // The upper lists follow the finger natively instead of jumping by a page.
         // Deliberately don't add an animated scrollBy here.
-      } else if (surface === 'day' && absX > 55 && absX > absY * 1.2) {
+      } else if (surface === 'day' && absX > 45 && absX > absY * 1.2) {
         moveDay(currentDay + (dx < 0 ? 1 : -1), dx < 0 ? 'left' : 'right');
-      } else if (absY > 70 && absY > absX * 1.2 && (dy < 0 || atTop)) {
+      } else if (absY > 58 && absY > absX * 1.2 && (dy < 0 || atTop)) {
         if (dy > 0) {
           if (surface === 'day') moveVertical('heap');
           else if (surface === 'heap') moveVertical('trash');
