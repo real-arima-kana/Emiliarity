@@ -1536,6 +1536,8 @@ body{color:var(--ink)!important}
       let lastSaved = JSON.stringify([t.title, t.description || '',t.date,t.time]);
       let saveTimer = null;
       const commit = () => {
+        // Ignore delayed autosaves after the editor is gone; closeSheet commits first.
+        if (!titleEl.isConnected) return;
         const name = titleEl.value.trim() || 'Untitled';
         const desc = descEl.value.trim();
         t.title = name.slice(0,140);
