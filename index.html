@@ -25,7 +25,7 @@
       --accent1:#efa6d0;
       --accent2:#8fdcf0;
       --accent3:#c6b0ff;
-      --stage-y:-200%;
+      --stage-y:-300%;
     }
     [hidden]{display:none !important}
     *{box-sizing:border-box}
@@ -107,8 +107,8 @@
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
     }
-    .pane-day{top:200%;background:linear-gradient(180deg,rgba(255,255,255,.03),var(--day-tone))}
-    .pane-heap{top:100%;background:linear-gradient(180deg,rgba(255,255,255,.02),var(--heap-tone))}
+    .pane-day{top:300%;background:linear-gradient(180deg,rgba(255,255,255,.03),var(--day-tone))}
+    .pane-heap{top:200%;background:linear-gradient(180deg,rgba(255,255,255,.02),var(--heap-tone))}
     .pane-trash{top:0%;background:linear-gradient(180deg,rgba(255,255,255,.015),var(--trash-tone))}
 
     .heading{
@@ -598,7 +598,7 @@
 .stage-art img{display:block;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
 .stage-art-top{bottom:100%;height:min(27vh,215px);align-items:end}
 .stage-art-top img{max-width:100%;object-position:center bottom}
-.stage-art-bottom{top:300%;height:min(53vh,390px);align-items:start}
+.stage-art-bottom{top:400%;height:min(53vh,390px);align-items:start}
 .stage-art-bottom img{width:min(96vw,430px);object-position:center top}
 /* Native scrolling may be captured by an ancestor on Android; touch handlers provide a direct fallback. */
 .content.column-scroller{overflow-x:auto!important;overflow-y:hidden!important;touch-action:none!important;scroll-behavior:auto!important;scroll-snap-type:none!important}
@@ -622,7 +622,7 @@
     drop-shadow(0 .55px 0 rgba(104,74,150,.94))
     drop-shadow(0 -.55px 0 rgba(104,74,150,.94));
 }
-.stage-art-bottom{height:min(40vh,276px)!important;top:300%!important;align-items:start!important}
+.stage-art-bottom{height:min(40vh,276px)!important;top:400%!important;align-items:start!important}
 .stage-art-bottom img{
   width:min(76vw,318px)!important;
   height:100%!important;
@@ -647,7 +647,7 @@
 }
 /* Keep the stack boundary opaque, preventing the illustration showing at rest. */
 .pane-trash{background:linear-gradient(180deg,rgba(96,62,130,.33),rgba(17,10,43,.40))!important}
-.stage-art-bottom{height:min(29vh,205px)!important;top:300%!important;align-items:start!important}
+.stage-art-bottom{height:min(29vh,205px)!important;top:400%!important;align-items:start!important}
 .stage-art-bottom img{
   width:min(53.2vw,223px)!important;
   height:100%!important;
@@ -886,23 +886,16 @@ body{color:var(--ink)!important}
 }
 
 
-/* v2.1: optional genuinely monochrome atmospheres; other palettes are untouched. */
-body[data-atmosphere="black"],body[data-atmosphere="white"]{background:var(--mono-bg)}
-body[data-atmosphere="black"]{--mono-bg:#000;--mono-card:#0c0c0c;--mono-border:rgba(255,255,255,.24);--mono-ink:#fff}
-body[data-atmosphere="white"]{--mono-bg:#fff;--mono-card:#fafafa;--mono-border:rgba(0,0,0,.19);--mono-ink:#000}
-body[data-atmosphere="black"] .bg-photo,body[data-atmosphere="white"] .bg-photo{opacity:0!important}
-body[data-atmosphere="black"] .sky,body[data-atmosphere="white"] .sky{background:var(--mono-bg)!important;filter:none!important}
-body[data-atmosphere="black"] .sky::before,body[data-atmosphere="white"] .sky::before,
-body[data-atmosphere="black"] .sky::after,body[data-atmosphere="white"] .sky::after{display:none!important}
-body[data-atmosphere="black"] .pane,body[data-atmosphere="white"] .pane{background:var(--mono-bg)!important}
-body[data-atmosphere="black"] .pane::after,body[data-atmosphere="white"] .pane::after{display:none!important}
-body[data-atmosphere="black"] .task,body[data-atmosphere="white"] .task{
- background:var(--mono-card)!important;border-color:var(--mono-border)!important;
- box-shadow:none!important;color:var(--mono-ink)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-body[data-atmosphere="black"] .task-name,body[data-atmosphere="white"] .task-name{color:var(--mono-ink)!important}
-body[data-atmosphere="white"] .heading{text-shadow:none!important}
-body[data-atmosphere="white"] .pane-day .heading.is-today{text-decoration-color:#000!important}
-body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);background:rgba(0,0,0,.055)!important;box-shadow:none!important}
+/* v2.2 calendar: quiet chronological list in the same vertical stack */
+.pane-calendar{top:100%;background:linear-gradient(180deg,rgba(40,25,68,.15),rgba(41,26,74,.20))!important}
+.calendar-content{overflow-y:auto!important;overflow-x:hidden!important;touch-action:pan-y!important;overscroll-behavior:contain}
+.calendar-list{padding-bottom:24px}
+.task.scheduled-task{min-height:76px;padding-bottom:24px}
+.task .task-date{position:absolute;bottom:9px;right:18px;font-size:10px;letter-spacing:.055em;opacity:.78;white-space:nowrap;line-height:1.25;pointer-events:none}
+.schedule-fields{display:flex;gap:10px;margin:10px 0 2px}
+.schedule-fields input{flex:1;min-width:0;border:1px solid rgba(255,255,255,.23);border-radius:16px;background:rgba(255,255,255,.09);color:var(--menu-ink);height:43px;padding:8px 10px;outline:none;font-size:13px}
+.schedule-fields input:focus{border-color:rgba(255,255,255,.58)}
+.schedule-fields input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.9}
 
   </style>
 </head>
@@ -918,6 +911,13 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
           <div class="fade fade-top" id="trashFadeTop"></div>
           <div class="fade fade-bottom" id="trashFadeBottom"></div>
           <div class="content" id="trashContent"><div class="content-list" id="trashList"></div></div>
+        </div>
+      </section>
+
+      <section class="pane pane-calendar">
+        <h1 class="heading">Calendar</h1>
+        <div class="content-wrap">
+          <div class="content calendar-content" id="calendarContent"><div class="content-list calendar-list" id="calendarList"></div></div>
         </div>
       </section>
 
@@ -969,7 +969,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
     if (!data || !Array.isArray(data.tasks)) data = { tasks: [], trash: [], settings: {}, lastDate: todayKey() };
     data.trash = Array.isArray(data.trash) ? data.trash : [];
     data.settings = Object.assign({ sound:true, haptics:true, dim:34, theme:'iridescent', motion:true, colors:null, font:'system', inkMode:'auto' }, data.settings);
-    if (!['iridescent','moon','blue','dark','light','forest','sunset','black','white','custom'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
+    if (!['iridescent','moon','blue','dark','light','custom'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
     if(Array.isArray(data.settings.colors) && data.settings.colors.length===3 && data.settings.theme!=='custom') data.settings.theme='custom';
     data.settings.gradientOpacity ??= 72;
     data.settings.backgroundImage ??= null;
@@ -977,6 +977,8 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
     data.settings.heapDecayDays ??= 7;
     data.tasks = data.tasks.filter(t => t && typeof t.title === 'string' && t.title.trim() && (t.day === 'heap' || Number.isInteger(t.day) && t.day >= 0 && t.day < 7));
     data.trash = data.trash.filter(t => t && typeof t.title === 'string' && t.title.trim());
+    data.scheduled = Array.isArray(data.scheduled) ? data.scheduled : [];
+    data.scheduled = data.scheduled.filter(t=>t && typeof t.title==='string' && t.title.trim() && /^\d{4}-\d{2}-\d{2}$/.test(t.date||'') && /^\d{2}:\d{2}$/.test(t.time||''));
     data.completed = Array.isArray(data.completed) ? data.completed : [];
     data.completed = data.completed.filter(t => t && typeof t.title === 'string' && t.title.trim());
 
@@ -1034,10 +1036,6 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
         blue:['#8ec4dd','#74a7d7','#d6badf','#afc6e8','#52749a','#41567c','#6786af'],
         dark:['#2a243a','#4c3d68','#293244','#30334a','#1d1a2c','#1e2035','#252237'],
         light:['#fff9fc','#e9f3ff','#f3e8fc','#fff7f9','#eceafa','#e4eeff','#f6e9f3'],
-        forest:['#badbc7','#7eaa97','#d1cf9c','#dbe3b5','#507c70','#294c47','#739786'],
-        sunset:['#f2b68e','#d67e84','#e6c8ae','#f4d1aa','#a86373','#704a66','#a36f65'],
-        black:['#000000','#000000','#000000','#000000','#000000','#000000','#000000'],
-        white:['#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff'],
         custom:['#f4bfd8','#9fe5f4','#d8bef6','#ffc4db','#958eb8','#746d99','#8183b1']
       };
       const defaultPalette = palettes[data.settings.theme] || palettes.iridescent;
@@ -1046,11 +1044,10 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       const colors = data.settings.theme==='custom' && Array.isArray(userColors) && userColors.length === 3 && userColors.every(validColor)
         ? [userColors[0],userColors[1],userColors[2],userColors[0],userColors[2],userColors[1],userColors[0]]
         : defaultPalette;
-      const light=['light','white'].includes(data.settings.theme);
-      document.body.dataset.atmosphere=data.settings.theme;
+      const light=data.settings.theme==='light';
       // Text colour and font are set from the accessibility/display preferences below.
       const dark=data.settings.theme==='dark';
-      const menuPalettes={iridescent:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)'],moon:['rgba(151,137,190,.96)','rgba(100,91,149,.97)','rgba(121,103,157,.97)'],blue:['rgba(149,211,236,.94)','rgba(129,183,224,.96)','rgba(159,166,224,.97)'],dark:['rgba(65,61,87,.97)','rgba(42,43,65,.98)','rgba(63,52,83,.98)'],forest:['rgba(84,124,111,.95)','rgba(48,85,73,.95)','rgba(65,104,92,.96)'],sunset:['rgba(171,97,109,.95)','rgba(126,76,103,.96)','rgba(151,100,93,.96)'],black:['rgba(13,13,13,.97)','rgba(6,6,6,.98)','rgba(17,17,17,.97)'],white:['rgba(250,250,250,.97)','rgba(255,255,255,.98)','rgba(246,246,246,.97)'],light:['rgba(255,250,255,.97)','rgba(231,245,255,.97)','rgba(240,232,253,.97)'],custom:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)']};
+      const menuPalettes={iridescent:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)'],moon:['rgba(151,137,190,.96)','rgba(100,91,149,.97)','rgba(121,103,157,.97)'],blue:['rgba(149,211,236,.94)','rgba(129,183,224,.96)','rgba(159,166,224,.97)'],dark:['rgba(65,61,87,.97)','rgba(42,43,65,.98)','rgba(63,52,83,.98)'],light:['rgba(255,250,255,.97)','rgba(231,245,255,.97)','rgba(240,232,253,.97)'],custom:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)']};
       const menuColors=menuPalettes[data.settings.theme]||menuPalettes.iridescent;
       document.documentElement.style.setProperty('--menu-a',menuColors[0]);
       document.documentElement.style.setProperty('--menu-b',menuColors[1]);
@@ -1124,10 +1121,10 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2050);
     }
 
-    function stageIndex(){ return surface === 'trash' ? 0 : surface === 'heap' ? 1 : 2; }
+    function stageIndex(){ return ({trash:0, calendar:1, heap:2, day:3})[surface] ?? 3; }
 
     function scrollerForSurface(name){
-      return name === 'day' ? $('dayContent') : name === 'heap' ? $('heapContent') : $('trashContent');
+      return name === 'day' ? $('dayContent') : name === 'heap' ? $('heapContent') : name === 'calendar' ? $('calendarContent') : $('trashContent');
     }
 
     function updateStage(){
@@ -1166,6 +1163,22 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       exit.oncancel=()=>oldPane.remove();
     }
 
+    function scheduledLabel(task){
+      const d=new Date(task.date+'T12:00:00');
+      if(Number.isNaN(d.getTime()))return '';
+      return d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' · '+task.time;
+    }
+    function currentWeekDate(day){
+      const d=logic(); d.setHours(12,0,0,0);
+      d.setDate(d.getDate()-weekday(d)+day);
+      return dateKey(d);
+    }
+    function scheduledOnDay(day){
+      const key=currentWeekDate(day);
+      return data.scheduled.filter(t=>t.date===key).sort((a,b)=>a.time.localeCompare(b.time));
+    }
+    function findActiveTask(id){ return data.tasks.find(t=>t.id===id)||data.scheduled.find(t=>t.id===id); }
+
     function taskCard(task, i){
       const item = document.createElement('div');
       item.className = 'task';
@@ -1175,6 +1188,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       item.style.animationDelay = Math.min(70, i*12) + 'ms';
       item.innerHTML = '<span class="progress"></span><span class="task-name"></span>';
       item.querySelector('.task-name').textContent = task.title;
+      if(task.date){ item.classList.add('scheduled-task'); const stamp=document.createElement('span'); stamp.className='task-date'; stamp.textContent=scheduledLabel(task); item.append(stamp); }
       if (task.isCompleted) {
         item.addEventListener('click',()=>task.isLegacy?restore(task.id):openCompleted(task.id));
       } else taskHold(item, task.id);
@@ -1223,9 +1237,14 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       $('dayHeading').classList.toggle('is-today', currentDay === today());
       const list = $('dayList');
       list.className = 'content-list ' + (dayAnim ? `day-animate-${dayAnim}` : '');
-      renderTaskList(list, data.tasks.filter(t => t.day === currentDay));
+      renderTaskList(list, [...data.tasks.filter(t => t.day === currentDay),...scheduledOnDay(currentDay)]);
       if (dayAnim) setTimeout(() => { list.className = 'content-list'; dayAnim = ''; }, 360);
       syncFades($('dayContent'), $('dayFadeTop'), $('dayFadeBottom'));
+    }
+
+    function renderCalendar(){
+      const ordered=[...data.scheduled].sort((a,b)=>(a.date+'T'+a.time).localeCompare(b.date+'T'+b.time));
+      renderTaskList($('calendarList'),ordered);
     }
 
     function render(){
@@ -1234,12 +1253,14 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       theme();
       renderTrash();
       renderHeap();
+      renderCalendar();
       renderDay();
       updateStage();
     }
 
     function finish(id, el){
-      const index=data.tasks.findIndex(t=>t.id===id);
+      const source=data.tasks.some(t=>t.id===id)?data.tasks:data.scheduled;
+      const index=source.findIndex(t=>t.id===id);
       if(index<0)return;
       const animate=!!(el && el.isConnected && data.settings.motion && !matchMedia('(prefers-reduced-motion: reduce)').matches);
       const rect=animate?el.getBoundingClientRect():null;
@@ -1264,13 +1285,13 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
           setTimeout(()=>particle.remove(),500);
         }
       }
-      const t=data.tasks.splice(index,1)[0];
+      const t=source.splice(index,1)[0];
       t.completedAt=Date.now();data.completed.push(t);save();feedback('finish');closeSheet();
       render();toast('Completed · added to Heap');
     }
     function deleteForever(id,completed=false){
       if(!confirm('Delete this task permanently? This cannot be undone.')) return;
-      const arr=completed?data.completed:data.tasks;
+      const arr=completed?data.completed:(data.tasks.some(t=>t.id===id)?data.tasks:data.scheduled);
       const idx=arr.findIndex(t=>t.id===id);
       if(idx<0)return;
       arr.splice(idx,1);save();feedback('finish');closeSheet();render();toast('Permanently deleted');
@@ -1282,7 +1303,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       body.innerHTML='<div class="description" id="doneTitle" style="font-size:24px;font-weight:550;margin-bottom:12px"></div><div class="description" id="doneDesc"></div><div class="icon-actions"><button class="icon-btn" id="undoComplete" aria-label="Restore to original day" title="Restore"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-2"/></svg></button><button class="icon-btn danger" id="deleteCompleted" aria-label="Delete permanently" title="Delete permanently"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg></button></div>';
       $('doneTitle').textContent=task.title;
       $('doneDesc').textContent=task.description||'';
-      $('undoComplete').onclick=()=>{const idx=data.completed.findIndex(t=>t.id===id);if(idx<0)return;const item=data.completed.splice(idx,1)[0];delete item.completedAt;data.tasks.push(item);save();feedback();closeSheet();render();toast('Restored')};
+      $('undoComplete').onclick=()=>{const idx=data.completed.findIndex(t=>t.id===id);if(idx<0)return;const item=data.completed.splice(idx,1)[0];delete item.completedAt;(item.date?data.scheduled:data.tasks).push(item);save();feedback();closeSheet();render();toast('Restored')};
       $('deleteCompleted').onclick=()=>deleteForever(id,true);
     }
 
@@ -1345,7 +1366,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       overlay.className = 'overlay'+(isCreate?' overlay-create':'');
       overlay.innerHTML = '<section class="sheet" role="dialog" aria-modal="true"><div class="handle"></div><div class="sheet-header"><h2></h2><button class="x" aria-label="Close">×</button></div><div class="sheet-body"></div></section>';
       const openedAt=performance.now();
-      overlay.addEventListener('click', e => { if (e.target === overlay && performance.now()-openedAt>330) { if (overlay.submitOnOutside) overlay.submitOnOutside(); else closeSheet(); } });
+      overlay.addEventListener('click', e => { if (e.target === overlay && performance.now()-openedAt>330) { if(isCreate)overlay.dispatchEvent(new Event('create-outside')); else closeSheet(); } });
       overlay.querySelector('.x').onclick = closeSheet;
       if(isCreate) overlay.classList.add('overlay-minimal');
       overlay.querySelector('h2').textContent = titleText;
@@ -1369,17 +1390,31 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       const { body } = sheet('',true);
       modal.querySelector('.sheet').setAttribute('aria-label','New task');
       body.innerHTML = '<div class="create-fields"><input id="newTitle" aria-label="Task title" type="text" maxlength="140" autocomplete="off"><textarea id="newDesc" aria-label="Optional description" maxlength="5000"></textarea><div class="actions create-actions"><button class="primary icon-submit" id="newSave" aria-label="Create task" title="Create task"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></button></div></div>';
+      if(surface==='calendar'){
+        const schedule=document.createElement('div');
+        schedule.className='schedule-fields';
+        schedule.innerHTML='<input type="date" id="newDate" aria-label="Task date"><input type="time" id="newTime" aria-label="Task time">';
+        body.querySelector('.create-fields').insertBefore(schedule,body.querySelector('.create-actions'));
+        const now=new Date();
+        $('newDate').value=dateKey(now);
+        $('newTime').value=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+      }
       let adding=false;
       const add = () => {
         if(adding)return;
         const name = $('newTitle').value.trim();
         if (!name) { $('newTitle').focus(); return; }
         adding=true;
-        data.tasks.push({ id: makeId(), title:name, description:$('newDesc').value.trim(), day: surface === 'heap' ? 'heap' : currentDay, createdAt: Date.now() });
+        const task={ id: makeId(), title:name, description:$('newDesc').value.trim(), createdAt: Date.now() };
+        if(surface==='calendar'){
+          task.date=$('newDate').value; task.time=$('newTime').value;
+          if(!task.date||!task.time){toast('Choose a date and time');return;}
+          data.scheduled.push(task);
+        }else{task.day=surface==='heap'?'heap':currentDay;data.tasks.push(task);}
         save(); feedback('create'); closeSheet(); render(); toast('Added');
       };
-      modal.submitOnOutside = () => { if ($('newTitle')?.value.trim()) add(); else closeSheet(); };
       $('newSave').onclick = add;
+      modal.addEventListener('create-outside',()=>{if($('newTitle')?.value.trim())add();else closeSheet();});
       $('newTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); add(); } });
       focusInput($('newTitle'));
     }
@@ -1403,7 +1438,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
     }
 
     function openTask(id){
-      const t = data.tasks.find(x => x.id === id);
+      const t = findActiveTask(id);
       if (!t) return;
       feedback();
       const { body } = sheet('');
@@ -1433,26 +1468,34 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
         <div class="choices" id="choices" hidden></div>
         </div>
       `;
+      if(t.date){
+        const schedule=document.createElement('div');schedule.className='schedule-fields';
+        schedule.innerHTML='<input type="date" id="detailDate" aria-label="Task date"><input type="time" id="detailTime" aria-label="Task time">';
+        body.querySelector('.icon-actions').before(schedule);
+        $('detailDate').value=t.date;$('detailTime').value=t.time;
+      }
       const titleEl = $('detailTitle');
       const descEl = $('detailDesc');
       titleEl.value = t.title;
       descEl.value = t.description || '';
-      let lastSaved = JSON.stringify([t.title, t.description || '']);
+      let lastSaved = JSON.stringify([t.title, t.description || '',t.date,t.time]);
       let saveTimer = null;
       const commit = () => {
         const name = titleEl.value.trim() || 'Untitled';
         const desc = descEl.value.trim();
         t.title = name.slice(0,140);
         t.description = desc.slice(0,5000);
-        const snapshot = JSON.stringify([t.title, t.description]);
+        if(t.date){const date=$('detailDate').value,time=$('detailTime').value;if(date&&time){t.date=date;t.time=time;}}
+        const snapshot = JSON.stringify([t.title, t.description,t.date,t.time]);
         if (snapshot !== lastSaved) { save(); render(); lastSaved = snapshot; }
       };
       const scheduleCommit = () => { clearTimeout(saveTimer); saveTimer = setTimeout(commit, 120); };
       activeDetailCommit = commit;
       titleEl.addEventListener('input', scheduleCommit);
       descEl.addEventListener('input', scheduleCommit);
-      $('tomorrow').onclick = () => { commit(); t.day = (Number.isInteger(t.day) ? t.day + 1 : today() + 1) % 7; save(); feedback(); closeSheet(); render(); toast('Moved to ' + DAYS[t.day]); };
-      $('choose').onclick = () => { commit(); dayChoices(t); };
+      if(t.date){$('detailDate').addEventListener('change',scheduleCommit);$('detailTime').addEventListener('change',scheduleCommit);}
+      $('tomorrow').onclick = () => { commit(); if(t.date){const d=new Date(t.date+'T12:00:00'); d.setDate(d.getDate()+1);t.date=dateKey(d);save();feedback();closeSheet();render();toast('Moved to next date');return;} t.day = (Number.isInteger(t.day) ? t.day + 1 : today() + 1) % 7; save(); feedback(); closeSheet(); render(); toast('Moved to ' + DAYS[t.day]); };
+      $('choose').onclick = () => { commit(); if(t.date){data.scheduled=data.scheduled.filter(x=>x.id!==id);delete t.date;delete t.time;t.day=currentDay;data.tasks.push(t);save();} dayChoices(t); }; 
       $('notifyTask').onclick = () => notifyTask(t, titleEl, descEl, commit);
       $('complete').onclick = () => { commit(); finish(id); };
       $('deleteTask').onclick = () => { commit(); deleteForever(id); };
@@ -1496,7 +1539,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
     }
 
     function exportBackup(){
-      const blob = new Blob([JSON.stringify({app:'emiliarity',version:6,exportedAt:new Date().toISOString(),tasks:data.tasks,trash:data.trash,completed:data.completed,settings:data.settings,lastDate:data.lastDate},null,2)], {type:'application/json'});
+      const blob = new Blob([JSON.stringify({app:'emiliarity',version:7,exportedAt:new Date().toISOString(),tasks:data.tasks,scheduled:data.scheduled,trash:data.trash,completed:data.completed,settings:data.settings,lastDate:data.lastDate},null,2)], {type:'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -1522,6 +1565,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
           data.trash = obj.trash.filter(valid).slice(0,80).map(clean);
           data.completed = Array.isArray(obj.completed) ? obj.completed.filter(valid).map(t=>({...clean(t),completedAt:t.completedAt||Date.now()})) : [];
           data.lastDate = fromKey(obj.lastDate) ? obj.lastDate : todayKey();
+          data.scheduled=Array.isArray(obj.scheduled)?obj.scheduled.filter(t=>t&&typeof t.title==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(t.date||'')&&/^\d{2}:\d{2}$/.test(t.time||'')):[];
           if (obj.settings && typeof obj.settings === 'object') data.settings = Object.assign(data.settings, obj.settings);
           save(); rollover(); closeSheet(); currentDay = today(); surface = 'day'; render(); toast('Backup restored');
         } catch {
@@ -1540,9 +1584,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
         <div class="themes">
           <button data-color="iridescent">Iridescent</button><button data-color="moon">Moon</button>
           <button data-color="blue">Blue</button><button data-color="dark">Simple dark</button>
-          <button data-color="light">Simple light</button><button data-color="forest">Forest</button>
-          <button data-color="sunset">Sunset</button><button data-color="black">Pure black</button>
-          <button data-color="white">Pure white</button><button data-color="custom">Custom</button>
+          <button data-color="light">Simple light</button><button data-color="custom">Custom</button>
         </div>
         <label class="custom-label">Colour</label>
         <div class="colour-wheel-row" id="customWheels">
@@ -1666,11 +1708,11 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       syncFades($('trashContent'), $('trashFadeTop'), $('trashFadeBottom'));
     }
 
-    ['dayContent','heapContent','trashContent'].forEach((id, i) => {
+    ['dayContent','heapContent','trashContent','calendarContent'].forEach((id, i) => {
       const scroller = $(id);
-      const pairs = [[$('dayFadeTop'),$('dayFadeBottom')],[$('heapFadeTop'),$('heapFadeBottom')],[$('trashFadeTop'),$('trashFadeBottom')]][i];
-      if(i){scroller.classList.add('column-scroller');pairs[0].classList.add('fade-x');pairs[1].classList.add('fade-x');}
-      scroller.addEventListener('scroll', () => syncFades(scroller, pairs[0], pairs[1]), {passive:true});
+      const pairs = [[$('dayFadeTop'),$('dayFadeBottom')],[$('heapFadeTop'),$('heapFadeBottom')],[$('trashFadeTop'),$('trashFadeBottom')],null][i];
+      if(i===1||i===2){scroller.classList.add('column-scroller');pairs[0].classList.add('fade-x');pairs[1].classList.add('fade-x');}
+      if(pairs)scroller.addEventListener('scroll', () => syncFades(scroller, pairs[0], pairs[1]), {passive:true});
       scroller.addEventListener('contextmenu', e => e.preventDefault());
       scroller.addEventListener('selectstart', e => {
         if (!e.target.closest('input,textarea')) e.preventDefault();
@@ -1698,6 +1740,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
     }
     pointerAddHandler($('dayContent'));
     pointerAddHandler($('heapContent'));
+    pointerAddHandler($('calendarContent'));
 
     $('heapSettings').onclick = openSettings;
 
@@ -1794,7 +1837,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       const ax=Math.abs(dx), ay=Math.abs(dy);
       if(ax>12 || ay>12)clearBlank();
       const stage=$('stage');
-      if(gesture.surfaceAtStart!=='day' && ax>12 && ax>ay*1.04 && !gesture.peeking && !gesture.topPeeking){
+      if(gesture.surfaceAtStart!=='day' && gesture.surfaceAtStart!=='calendar' && ax>12 && ax>ay*1.04 && !gesture.peeking && !gesture.topPeeking){
         const scroller=gesture.scroller;
         if(scroller && scroller.scrollWidth>scroller.clientWidth+2){
           gesture.horizontalDragging=true;
@@ -1823,7 +1866,7 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
         if(e.cancelable)e.preventDefault();
         return;
       }
-      if(ay>30 && ay>ax*1.15 && gesture.surfaceAtStart!=='day' && e.cancelable)e.preventDefault();
+      if(ay>30 && ay>ax*1.15 && gesture.surfaceAtStart!=='day' && gesture.surfaceAtStart!=='calendar' && e.cancelable)e.preventDefault();
     },{passive:false});
 
     function settlePull(){
@@ -1843,19 +1886,22 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       const absX = Math.abs(dx), absY = Math.abs(dy);
       const scroller = gesture.scroller || scrollerForSurface(surface);
       const atTop = (scroller?.scrollTop || 0) < 6;
-      if(surface!=='day' && absX>41 && absX>absY*1.12){
+      const atBottom=!!scroller&&(scroller.scrollTop+scroller.clientHeight>=scroller.scrollHeight-6);
+      if(surface!=='day' && absX>48 && absX>absY*1.12){
         // Native horizontal pan remains primary; this handles Android webviews
         // that swallow the touch because of a surrounding gesture handler.
         // The upper lists follow the finger natively instead of jumping by a page.
         // Deliberately don't add an animated scrollBy here.
-      } else if (surface === 'day' && absX > 45 && absX > absY * 1.2) {
+      } else if (surface === 'day' && absX > 55 && absX > absY * 1.2) {
         moveDay(currentDay + (dx < 0 ? 1 : -1), dx < 0 ? 'left' : 'right');
-      } else if (absY > 58 && absY > absX * 1.2 && (dy < 0 || atTop)) {
+      } else if (absY > 58 && absY > absX * 1.2 && (dy > 0 ? atTop : surface!=='calendar'||atBottom)) {
         if (dy > 0) {
           if (surface === 'day') moveVertical('heap');
-          else if (surface === 'heap') moveVertical('trash');
+          else if (surface === 'heap') moveVertical('calendar');
+          else if (surface === 'calendar') moveVertical('trash');
         } else {
-          if (surface === 'trash') moveVertical('heap');
+          if (surface === 'trash') moveVertical('calendar');
+          else if (surface === 'calendar') moveVertical('heap');
           else if (surface === 'heap') moveVertical('day');
         }
       }
@@ -1869,10 +1915,13 @@ body[data-atmosphere="white"] .task-badge{border-color:rgba(0,0,0,.28);backgroun
       if (modal) return;
       if (surface === 'day' && e.key === 'ArrowLeft') moveDay(currentDay + 1, 'left');
       if (surface === 'day' && e.key === 'ArrowRight') moveDay(currentDay - 1, 'right');
-      if (surface === 'day' && e.key === 'ArrowDown') moveVertical('heap');
-      if (surface === 'heap' && e.key === 'ArrowDown') moveVertical('trash');
-      if (surface === 'heap' && e.key === 'ArrowUp') moveVertical('day');
-      if (surface === 'trash' && e.key === 'ArrowUp') moveVertical('heap');
+      if (e.key === 'ArrowDown'){
+        const next=({day:'heap',heap:'calendar',calendar:'trash'})[surface];
+        if(next) {e.preventDefault();moveVertical(next);}
+      } else if (e.key === 'ArrowUp'){
+        const next=({trash:'calendar',calendar:'heap',heap:'day'})[surface];
+        if(next) {e.preventDefault();moveVertical(next);}
+      }
       if (e.key === 'n' && !e.ctrlKey && !e.metaKey) openCreate();
     });
 
