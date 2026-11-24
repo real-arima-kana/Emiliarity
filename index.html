@@ -897,6 +897,17 @@ body{color:var(--ink)!important}
 .schedule-fields input:focus{border-color:rgba(255,255,255,.58)}
 .schedule-fields input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.9}
 
+/* v2.3: keep dated and undated bubbles the same footprint */
+.task.scheduled-task{min-height:64px!important;padding:15px 18px!important}
+.task.scheduled-task .task-name{padding-right:9px;padding-bottom:9px}
+.task.scheduled-task .task-date{bottom:7px;right:18px;font-size:10px;line-height:1.15;opacity:.84}
+.task.scheduled-task.is-overdue .task-date{opacity:1;font-weight:600}
+/* These presets are genuinely neutral when no background photograph is selected. */
+[data-atmosphere="black"] .sky::before,[data-atmosphere="white"] .sky::before{opacity:0!important;animation:none!important}
+[data-atmosphere="black"] .sky::after,[data-atmosphere="white"] .sky::after{opacity:0!important}
+[data-atmosphere="black"] .pane,[data-atmosphere="white"] .pane{background:transparent!important}
+[data-atmosphere="black"] .pane::after,[data-atmosphere="white"] .pane::after{background:transparent!important}
+
   </style>
 </head>
 <body>
@@ -969,8 +980,7 @@ body{color:var(--ink)!important}
     if (!data || !Array.isArray(data.tasks)) data = { tasks: [], trash: [], settings: {}, lastDate: todayKey() };
     data.trash = Array.isArray(data.trash) ? data.trash : [];
     data.settings = Object.assign({ sound:true, haptics:true, dim:34, theme:'iridescent', motion:true, colors:null, font:'system', inkMode:'auto' }, data.settings);
-    if (!['iridescent','moon','blue','dark','light','custom'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
-    if(Array.isArray(data.settings.colors) && data.settings.colors.length===3 && data.settings.theme!=='custom') data.settings.theme='custom';
+    if (!['iridescent','moon','blue','dark','light','forest','sunset','black','white','emilia','custom'].includes(data.settings.theme)) data.settings.theme = 'iridescent';
     data.settings.gradientOpacity ??= 72;
     data.settings.backgroundImage ??= null;
     data.settings.backgroundBlur ??= 0;
@@ -1036,6 +1046,11 @@ body{color:var(--ink)!important}
         blue:['#8ec4dd','#74a7d7','#d6badf','#afc6e8','#52749a','#41567c','#6786af'],
         dark:['#2a243a','#4c3d68','#293244','#30334a','#1d1a2c','#1e2035','#252237'],
         light:['#fff9fc','#e9f3ff','#f3e8fc','#fff7f9','#eceafa','#e4eeff','#f6e9f3'],
+        forest:['#badbc7','#7eaa97','#d1cf9c','#dbe3b5','#507c70','#294c47','#739786'],
+        sunset:['#f2b68e','#d67e84','#e6c8ae','#f4d1aa','#a86373','#704a66','#a36f65'],
+        black:['#000000','#000000','#000000','#000000','#000000','#000000','#000000'],
+        white:['#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff','#ffffff'],
+        emilia:['#f5efff','#d9caff','#e4eafa','#c9b2f1','#afa0d8','#7669ad','#c2d2f0'],
         custom:['#f4bfd8','#9fe5f4','#d8bef6','#ffc4db','#958eb8','#746d99','#8183b1']
       };
       const defaultPalette = palettes[data.settings.theme] || palettes.iridescent;
@@ -1044,9 +1059,10 @@ body{color:var(--ink)!important}
       const colors = data.settings.theme==='custom' && Array.isArray(userColors) && userColors.length === 3 && userColors.every(validColor)
         ? [userColors[0],userColors[1],userColors[2],userColors[0],userColors[2],userColors[1],userColors[0]]
         : defaultPalette;
-      const light=data.settings.theme==='light';
+      const light=data.settings.theme==='light'||data.settings.theme==='white';
+      document.documentElement.dataset.atmosphere=data.settings.theme;
       // Text colour and font are set from the accessibility/display preferences below.
-      const dark=data.settings.theme==='dark';
+      const dark=data.settings.theme==='dark'||data.settings.theme==='black';
       const menuPalettes={iridescent:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)'],moon:['rgba(151,137,190,.96)','rgba(100,91,149,.97)','rgba(121,103,157,.97)'],blue:['rgba(149,211,236,.94)','rgba(129,183,224,.96)','rgba(159,166,224,.97)'],dark:['rgba(65,61,87,.97)','rgba(42,43,65,.98)','rgba(63,52,83,.98)'],light:['rgba(255,250,255,.97)','rgba(231,245,255,.97)','rgba(240,232,253,.97)'],custom:['rgba(244,194,223,.93)','rgba(159,213,245,.93)','rgba(188,166,234,.95)']};
       const menuColors=menuPalettes[data.settings.theme]||menuPalettes.iridescent;
       document.documentElement.style.setProperty('--menu-a',menuColors[0]);
@@ -1163,10 +1179,18 @@ body{color:var(--ink)!important}
       exit.oncancel=()=>oldPane.remove();
     }
 
+    function scheduledDateTime(task){
+      const date=fromKey(task.date);
+      if(!date || !/^([01]\d|2[0-3]):[0-5]\d$/.test(task.time||'')) return null;
+      const [hour,minute]=task.time.split(':').map(Number);
+      date.setHours(hour,minute,0,0);
+      return date;
+    }
+    function isOverdue(task){const at=scheduledDateTime(task);return !!at&&at.getTime()<Date.now();}
     function scheduledLabel(task){
       const d=new Date(task.date+'T12:00:00');
       if(Number.isNaN(d.getTime()))return '';
-      return d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' · '+task.time;
+      return (isOverdue(task)?'Overdue · ':'')+d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' · '+task.time;
     }
     function currentWeekDate(day){
       const d=logic(); d.setHours(12,0,0,0);
@@ -1183,12 +1207,13 @@ body{color:var(--ink)!important}
       const item = document.createElement('div');
       item.className = 'task';
       item.tabIndex = 0;
+      item.dataset.taskId=task.id;
       item.setAttribute('role','button');
       item.setAttribute('aria-label', `${task.title}. Tap for details, hold to complete.`);
       item.style.animationDelay = Math.min(70, i*12) + 'ms';
       item.innerHTML = '<span class="progress"></span><span class="task-name"></span>';
       item.querySelector('.task-name').textContent = task.title;
-      if(task.date){ item.classList.add('scheduled-task'); const stamp=document.createElement('span'); stamp.className='task-date'; stamp.textContent=scheduledLabel(task); item.append(stamp); }
+      if(task.date){ item.classList.add('scheduled-task'); item.classList.toggle('is-overdue',isOverdue(task)); const stamp=document.createElement('span'); stamp.className='task-date'; stamp.textContent=scheduledLabel(task); item.append(stamp); }
       if (task.isCompleted) {
         item.addEventListener('click',()=>task.isLegacy?restore(task.id):openCompleted(task.id));
       } else taskHold(item, task.id);
@@ -1237,7 +1262,7 @@ body{color:var(--ink)!important}
       $('dayHeading').classList.toggle('is-today', currentDay === today());
       const list = $('dayList');
       list.className = 'content-list ' + (dayAnim ? `day-animate-${dayAnim}` : '');
-      renderTaskList(list, [...data.tasks.filter(t => t.day === currentDay),...scheduledOnDay(currentDay)]);
+      renderTaskList(list, [...scheduledOnDay(currentDay),...data.tasks.filter(t => t.day === currentDay)]);
       if (dayAnim) setTimeout(() => { list.className = 'content-list'; dayAnim = ''; }, 360);
       syncFades($('dayContent'), $('dayFadeTop'), $('dayFadeBottom'));
     }
@@ -1245,6 +1270,15 @@ body{color:var(--ink)!important}
     function renderCalendar(){
       const ordered=[...data.scheduled].sort((a,b)=>(a.date+'T'+a.time).localeCompare(b.date+'T'+b.time));
       renderTaskList($('calendarList'),ordered);
+    }
+
+    function refreshOverdueStamps(){
+      for(const card of document.querySelectorAll('.task.scheduled-task')){
+        const dateLabel=card.querySelector('.task-date');
+        if(!dateLabel || !card.dataset.taskId) continue;
+        const task=data.scheduled.find(t=>t.id===card.dataset.taskId);
+        if(task){card.classList.toggle('is-overdue',isOverdue(task));dateLabel.textContent=scheduledLabel(task);}
+      }
     }
 
     function render(){
@@ -1404,13 +1438,13 @@ body{color:var(--ink)!important}
         if(adding)return;
         const name = $('newTitle').value.trim();
         if (!name) { $('newTitle').focus(); return; }
-        adding=true;
         const task={ id: makeId(), title:name, description:$('newDesc').value.trim(), createdAt: Date.now() };
         if(surface==='calendar'){
           task.date=$('newDate').value; task.time=$('newTime').value;
-          if(!task.date||!task.time){toast('Choose a date and time');return;}
+          if(!fromKey(task.date)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(task.time)){toast('Choose a valid date and time');return;}
+          adding=true;
           data.scheduled.push(task);
-        }else{task.day=surface==='heap'?'heap':currentDay;data.tasks.push(task);}
+        }else{adding=true;task.day=surface==='heap'?'heap':currentDay;data.tasks.push(task);}
         save(); feedback('create'); closeSheet(); render(); toast('Added');
       };
       $('newSave').onclick = add;
@@ -1424,13 +1458,30 @@ body{color:var(--ink)!important}
       el.hidden = !el.hidden;
       if (el.hidden) return;
       el.innerHTML = '';
-      [...DAYS, 'Heap'].forEach((d, i) => {
+      [...DAYS, 'Todo', 'Calendar'].forEach((d, i) => {
         const b = document.createElement('button');
-        const target = i === 7 ? 'heap' : i;
-        b.textContent = i === 7 ? 'Heap' : d.slice(0,3);
-        b.className = task.day === target ? 'active' : '';
+        const target = i === 7 ? 'heap' : i === 8 ? 'calendar' : i;
+        b.textContent = i < 7 ? d.slice(0,3) : d;
+        b.className = (target==='calendar'?!!task.date:task.day===target) ? 'active' : '';
         b.onclick = () => {
-          task.day = target;
+          activeDetailCommit=null;
+          if(target==='calendar'){
+            if(!task.date){
+              data.tasks=data.tasks.filter(x=>x.id!==task.id);
+              task.date=currentWeekDate(Number.isInteger(task.day)?task.day:today());
+              task.time='09:00';
+              delete task.day;
+              data.scheduled.push(task);
+            }
+            save();feedback();closeSheet();render();openTask(task.id);toast('Choose a date and time');
+            return;
+          }
+          if(task.date){
+            data.scheduled=data.scheduled.filter(x=>x.id!==task.id);
+            delete task.date;delete task.time;
+            data.tasks.push(task);
+          }
+          task.day=target;
           save(); feedback(); closeSheet(); render(); toast('Moved to ' + d);
         };
         el.append(b);
@@ -1494,10 +1545,24 @@ body{color:var(--ink)!important}
       titleEl.addEventListener('input', scheduleCommit);
       descEl.addEventListener('input', scheduleCommit);
       if(t.date){$('detailDate').addEventListener('change',scheduleCommit);$('detailTime').addEventListener('change',scheduleCommit);}
-      $('tomorrow').onclick = () => { commit(); if(t.date){const d=new Date(t.date+'T12:00:00'); d.setDate(d.getDate()+1);t.date=dateKey(d);save();feedback();closeSheet();render();toast('Moved to next date');return;} t.day = (Number.isInteger(t.day) ? t.day + 1 : today() + 1) % 7; save(); feedback(); closeSheet(); render(); toast('Moved to ' + DAYS[t.day]); };
-      $('choose').onclick = () => { commit(); if(t.date){data.scheduled=data.scheduled.filter(x=>x.id!==id);delete t.date;delete t.time;t.day=currentDay;data.tasks.push(t);save();} dayChoices(t); }; 
+      $('tomorrow').onclick = () => {
+        commit();
+        if(t.date){
+          const d=fromKey(t.date);
+          if(!d){toast('Invalid scheduled date');return;}
+          d.setDate(d.getDate()+1);
+          t.date=dateKey(d);
+          $('detailDate').value=t.date; // Keep the editor and model in sync before dismissing.
+          activeDetailCommit=null;
+          save();feedback();closeSheet();render();toast('Moved to '+scheduledLabel(t));
+          return;
+        }
+        t.day=(Number.isInteger(t.day)?t.day+1:today()+1)%7;
+        activeDetailCommit=null;save();feedback();closeSheet();render();toast('Moved to '+DAYS[t.day]);
+      };
+      $('choose').onclick = () => { commit(); dayChoices(t); }; 
       $('notifyTask').onclick = () => notifyTask(t, titleEl, descEl, commit);
-      $('complete').onclick = () => { commit(); finish(id); };
+      $('complete').onclick = () => { commit(); activeDetailCommit=null; finish(id); };
       $('deleteTask').onclick = () => { commit(); deleteForever(id); };
       // Do not focus an editor unless the user explicitly taps it.
 
@@ -1584,7 +1649,7 @@ body{color:var(--ink)!important}
         <div class="themes">
           <button data-color="iridescent">Iridescent</button><button data-color="moon">Moon</button>
           <button data-color="blue">Blue</button><button data-color="dark">Simple dark</button>
-          <button data-color="light">Simple light</button><button data-color="custom">Custom</button>
+          <button data-color="light">Simple light</button><button data-color="forest">Forest</button><button data-color="sunset">Sunset</button><button data-color="emilia">Emilia</button><button data-color="black">Pure black</button><button data-color="white">Pure white</button><button data-color="custom">Custom</button>
         </div>
         <label class="custom-label">Colour</label>
         <div class="colour-wheel-row" id="customWheels">
@@ -1927,7 +1992,7 @@ body{color:var(--ink)!important}
 
     document.addEventListener('visibilitychange', () => { if (!document.hidden) { if(today()!==lastActiveDay){currentDay=today();surface='day';} lastActiveDay=today();render(); } });
     window.addEventListener('resize', () => {renderHeap();renderTrash();syncAllFades();});
-    setInterval(() => { if (!document.hidden && todayKey() !== data.lastDate) render(); }, 60000);
+    setInterval(() => { if (document.hidden) return; if(todayKey() !== data.lastDate) render(); else refreshOverdueStamps(); }, 60000);
 
     // Launch on today, not the day last viewed before the app was closed.
     currentDay = today(); surface = 'day';
