@@ -1,12 +1,23 @@
-# Emiliarity v2.1 — Final refinements
+# Emiliarity v2.2 — Calendar
 
-Built from v2.0 Fullscreen.
+A minimal Calendar pane has been added to the vertical stack:
 
-- Tapping outside the new-task popup saves a task when the title is non-empty; with no title, it dismisses without creating a blank task. Escape still cancels.
-- Weekday and vertical swipe release thresholds are slightly lower (55→45px and 70→58px); upper-list horizontal threshold 48→41px.
-- Four additional atmospheres: Forest (deep botanical green), Sunset (warm blush), Pure black (solid #000000), Pure white (solid #ffffff). Earlier atmospheres and custom gradients are preserved.
-- In pure black/white atmospheres, the imported wallpaper is temporarily hidden, not deleted. Switching themes restores it.
-- Fullscreen manifest, artwork, icons, task storage format and all unrelated interactions remain unchanged.
+**Heap → Calendar → Todo → Monday–Sunday**
 
-## Install
-Export a task backup before replacing the contents of the deployed GitHub Pages repository with the files in this folder. Commit and refresh the installed app.
+- Calendar is a simple chronological task list, not a month grid.
+- Long-press empty space in Calendar to add a dated task. Enter a title, optional description, date, and time. Enter in the title submits as usual.
+- Dated tasks are displayed with a small date/time stamp in the bottom-right corner of their existing bubble.
+- Scheduled tasks also appear automatically on their matching weekday **in the corresponding calendar week**. Future weeks appear when that week arrives. Calendar itself retains all unfinished dated tasks, including past dates, until completed or deleted.
+- Tap a scheduled task on either screen to edit its title, description, date, or time. A task is a single record, not two independently managed copies.
+- Completing a scheduled task removes it from both Calendar and the weekday view and moves it to completed Heap.
+- Regular Todo and weekday tasks retain their existing behaviour, including the app's 4 AM day rollover.
+- The immediate, optional notification action remains unchanged. Dates and times do not schedule notifications or alarms.
+- Backups now include dated tasks. Older backups without calendar tasks remain importable.
+
+## Updating
+
+1. Export a backup from the currently installed app.
+2. Upload all files inside this folder to the root of the existing GitHub Pages repository, replacing older files.
+3. Commit and refresh the installed app once the update has deployed.
+
+App icons, Emilia illustrations, gradient presets, fullscreen display setting and prior task styles are preserved.
