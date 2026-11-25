@@ -12,7 +12,7 @@
   <title>Emiliarity</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@400;500;600&family=Outfit:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Urbanist:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&family=DM+Sans:wght@400;500;600&family=Figtree:wght@400;500;600&family=Geist:wght@400;500;600&family=Instrument+Sans:wght@400;500;600&family=Lexend:wght@400;500;600&family=Manrope:wght@400;500;600&family=Onest:wght@400;500;600&family=Outfit:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Urbanist:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root{
       color-scheme: dark;
@@ -1126,7 +1126,13 @@ body{color:var(--ink)!important}
         sora:'"Sora",system-ui,Roboto,sans-serif',
         urbanist:'"Urbanist",system-ui,Roboto,sans-serif',
         space:'"Space Grotesk",system-ui,Roboto,sans-serif',
-        work:'"Work Sans",system-ui,Roboto,sans-serif'
+        work:'"Work Sans",system-ui,Roboto,sans-serif',
+        geist:'"Geist",system-ui,Roboto,sans-serif',
+        instrument:'"Instrument Sans",system-ui,Roboto,sans-serif',
+        figtree:'"Figtree",system-ui,Roboto,sans-serif',
+        onest:'"Onest",system-ui,Roboto,sans-serif',
+        albert:'"Albert Sans",system-ui,Roboto,sans-serif',
+        lexend:'"Lexend",system-ui,Roboto,sans-serif'
       };
       document.documentElement.style.setProperty('--app-font',fontFamilies[data.settings.font]||fontFamilies.system);
       const ink=data.settings.inkMode==='white'?'#fff':data.settings.inkMode==='black'?'#000':light?'#000':'#fff';
@@ -1638,7 +1644,6 @@ body{color:var(--ink)!important}
       titleEl.value = t.title;
       descEl.value = t.description || '';
       let lastSaved = JSON.stringify([t.title, t.description || '',t.date,t.time,t.repeat,t.repeatAnchor]);
-      let saveTimer = null;
       const commit = () => {
         // Ignore delayed autosaves after the editor is gone; closeSheet commits first.
         if (!titleEl.isConnected) return;
@@ -1658,11 +1663,12 @@ body{color:var(--ink)!important}
         if (snapshot !== lastSaved) { save(); lastSaved = snapshot; }
         // Keep the currently focused editor stable while saving; redraw on close.
       };
-      const scheduleCommit = () => { clearTimeout(saveTimer); saveTimer = setTimeout(commit, 120); };
+      // Editing must never write to localStorage or redraw on every keystroke.
+      // Save when leaving a field, choosing a calendar value, or closing the editor.
       activeDetailCommit = commit;
-      titleEl.addEventListener('input', scheduleCommit);
-      descEl.addEventListener('input', scheduleCommit);
-      if(t.date){$('detailDate').addEventListener('change',scheduleCommit);$('detailTime').addEventListener('change',scheduleCommit);$('detailRepeat').addEventListener('change',scheduleCommit);}
+      titleEl.addEventListener('change',commit);
+      descEl.addEventListener('change',commit);
+      if(t.date){$('detailDate').addEventListener('change',commit);$('detailTime').addEventListener('change',commit);$('detailRepeat').addEventListener('change',commit);}
       $('tomorrow').onclick = () => {
         commit();
         if(t.date){
@@ -1789,6 +1795,9 @@ body{color:var(--ink)!important}
           <option value="manrope">Manrope</option><option value="jakarta">Plus Jakarta Sans</option><option value="dm">DM Sans</option>
           <option value="outfit">Outfit</option><option value="sora">Sora</option><option value="urbanist">Urbanist</option>
           <option value="space">Space Grotesk</option><option value="work">Work Sans</option>
+          <option value="geist">Geist</option><option value="instrument">Instrument Sans</option>
+          <option value="figtree">Figtree</option><option value="onest">Onest</option>
+          <option value="albert">Albert Sans</option><option value="lexend">Lexend</option>
           <option value="serif">Georgia</option><option value="editorial">Editorial serif</option><option value="mono">Monospace</option>
         </select></div>
         <div class="setting"><span>Text</span><select id="inkSelect" aria-label="Text colour"><option value="auto">Automatic</option><option value="white">White</option><option value="black">Black</option></select></div>
