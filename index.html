@@ -2121,9 +2121,21 @@ body{color:var(--ink)!important}
       if (e.key === 'n' && !e.ctrlKey && !e.metaKey) openCreate();
     });
 
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) { if(today()!==lastActiveDay){currentDay=today();surface='day';} lastActiveDay=today();render(); } });
-    window.addEventListener('resize', () => {renderHeap();renderTrash();syncAllFades();});
-    setInterval(() => { if (document.hidden) return; if(todayKey() !== data.lastDate) render(); else refreshOverdueStamps(); }, 60000);
+    document.addEventListener('visibilitychange', () => {
+      if(document.hidden){ activeDetailCommit?.(); return; }
+      if(modal)return; // Never redraw an open editor during Android keyboard activity.
+      if(today()!==lastActiveDay){currentDay=today();surface='day';}
+      lastActiveDay=today();
+      render();
+    });
+    window.addEventListener('resize', () => {
+      if(modal)return; // Soft keyboard opening/closing must not recreate editor-adjacent lists.
+      renderHeap();renderTrash();syncAllFades();
+    });
+    setInterval(() => {
+      if(document.hidden || modal)return;
+      if(todayKey() !== data.lastDate) render(); else refreshOverdueStamps();
+    }, 60000);
 
     // Launch on today, not the day last viewed before the app was closed.
     currentDay = today(); surface = 'day';
