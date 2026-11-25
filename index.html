@@ -10,6 +10,9 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <title>Emiliarity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@400;500;600&family=Outfit:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Sora:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Urbanist:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root{
       color-scheme: dark;
@@ -1115,7 +1118,15 @@ body{color:var(--ink)!important}
         light:'"Roboto Light","sans-serif-light",system-ui,sans-serif',
         serif:'Georgia,"Noto Serif",serif',
         editorial:'"Times New Roman","Noto Serif",serif',
-        mono:'"Roboto Mono","SFMono-Regular",monospace'
+        mono:'"Roboto Mono","SFMono-Regular",monospace',
+        manrope:'"Manrope",system-ui,Roboto,sans-serif',
+        jakarta:'"Plus Jakarta Sans",system-ui,Roboto,sans-serif',
+        dm:'"DM Sans",system-ui,Roboto,sans-serif',
+        outfit:'"Outfit",system-ui,Roboto,sans-serif',
+        sora:'"Sora",system-ui,Roboto,sans-serif',
+        urbanist:'"Urbanist",system-ui,Roboto,sans-serif',
+        space:'"Space Grotesk",system-ui,Roboto,sans-serif',
+        work:'"Work Sans",system-ui,Roboto,sans-serif'
       };
       document.documentElement.style.setProperty('--app-font',fontFamilies[data.settings.font]||fontFamilies.system);
       const ink=data.settings.inkMode==='white'?'#fff':data.settings.inkMode==='black'?'#000':light?'#000':'#fff';
@@ -1498,10 +1509,12 @@ body{color:var(--ink)!important}
     }
 
     function closeSheet(){
+      const closingEditor = !!modal?.classList.contains('overlay-edit');
       try { activeDetailCommit?.(); } catch {}
       activeDetailCommit = null;
       modal?.remove();
       modal = null;
+      if (closingEditor) render();
     }
 
     function focusInput(input){ setTimeout(() => input?.focus(), 230); }
@@ -1642,7 +1655,8 @@ body{color:var(--ink)!important}
           }
         }
         const snapshot = JSON.stringify([t.title, t.description,t.date,t.time,t.repeat,t.repeatAnchor]);
-        if (snapshot !== lastSaved) { save(); render(); lastSaved = snapshot; }
+        if (snapshot !== lastSaved) { save(); lastSaved = snapshot; }
+        // Keep the currently focused editor stable while saving; redraw on close.
       };
       const scheduleCommit = () => { clearTimeout(saveTimer); saveTimer = setTimeout(commit, 120); };
       activeDetailCommit = commit;
@@ -1772,6 +1786,9 @@ body{color:var(--ink)!important}
           <option value="system">System</option><option value="inter">Inter style</option><option value="rounded">Rounded</option>
           <option value="clean">Arial</option><option value="modern">Helvetica</option><option value="geometric">Geometric</option>
           <option value="humanist">Humanist</option><option value="condensed">Condensed</option><option value="light">Light</option>
+          <option value="manrope">Manrope</option><option value="jakarta">Plus Jakarta Sans</option><option value="dm">DM Sans</option>
+          <option value="outfit">Outfit</option><option value="sora">Sora</option><option value="urbanist">Urbanist</option>
+          <option value="space">Space Grotesk</option><option value="work">Work Sans</option>
           <option value="serif">Georgia</option><option value="editorial">Editorial serif</option><option value="mono">Monospace</option>
         </select></div>
         <div class="setting"><span>Text</span><select id="inkSelect" aria-label="Text colour"><option value="auto">Automatic</option><option value="white">White</option><option value="black">Black</option></select></div>
